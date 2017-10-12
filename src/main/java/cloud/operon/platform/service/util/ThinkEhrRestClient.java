@@ -269,4 +269,8 @@ public class ThinkEhrRestClient {
     public void setManagerUrl(String managerUrl) {
         this.managerUrl = managerUrl;
     }
+
+    public String getBaseUrl() {
+        return baseUrl;
+    }
 }

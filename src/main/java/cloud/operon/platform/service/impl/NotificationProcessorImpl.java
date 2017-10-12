@@ -31,7 +31,7 @@ import java.util.UUID;
 @Service
 @Transactional
 //@RabbitListener(queues = "notifications")
-@RabbitListener(bindings = @QueueBinding(value = @Queue(value = "notifications", durable = "true") , exchange = @Exchange(value = "exch", autoDelete = "true") , key = "key") )
+@RabbitListener(bindings = @QueueBinding(value = @Queue(value = "notifications", durable = "true"), exchange = @Exchange(value = "exch", autoDelete = "true"), key = "key"))
 @ConfigurationProperties(prefix = "notifier", ignoreUnknownFields = false)
 public class NotificationProcessorImpl {
 
@@ -51,7 +51,7 @@ public class NotificationProcessorImpl {
     @Autowired
     private MailService mailService;
 
-//    @RabbitListener(queues = "notifications")
+    //    @RabbitListener(queues = "notifications")
     @RabbitHandler
     public void receive(@Payload Notification notification) {
         log.info("Received notification {}", notification);
@@ -60,8 +60,8 @@ public class NotificationProcessorImpl {
         // set headers
         HttpHeaders headers = new HttpHeaders();
         if (!skipCompositionIdValidation) {
-            String plainCreds = operinoService.getConfigForOperino(notification.getOperino()).get("username") +
-                    ":" + operinoService.getConfigForOperino(notification.getOperino()).get("password");
+            Map<String, String> config = operinoService.getConfigForOperino(notification.getOperino());
+            String plainCreds = config.get(OperinoService.USERNAME) + ":" + config.get(OperinoService.PASSWORD);
             byte[] plainCredsBytes = plainCreds.getBytes();
             byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes);
             String base64Creds = new String(base64CredsBytes);
@@ -82,19 +82,19 @@ public class NotificationProcessorImpl {
                 log.debug("getResponse = " + getResponse);
             }
             // now process notification and send emails
-            if((getResponse != null && getResponse.getStatusCode() == HttpStatus.OK) || skipCompositionIdValidation){
+            if ((getResponse != null && getResponse.getStatusCode() == HttpStatus.OK) || skipCompositionIdValidation) {
                 // now loop though recipients and send emails to all
                 notification.getEmail().getRecipients().forEach(recipient -> {
                     mailService.sendEmailWithAttachment(recipient, notification.getEmail().getReportEmail().getSubject(),
-                            notification.getEmail().getReportEmail().getBody(),
-                            reportFileName + ".pdf", reportPath, "application/pdf", true, true);
+                        notification.getEmail().getReportEmail().getBody(),
+                        reportFileName + ".pdf", reportPath, "application/pdf", true, true);
                     log.info("Sent report to recipient = {}", recipient);
                 });
 
                 // now loop through confirmation receivers and notify all
                 notification.getEmail().getConfirmationReceivers().forEach(recipient -> {
                     mailService.sendEmail(recipient, notification.getEmail().getConfirmationEmail().getSubject(),
-                            notification.getEmail().getConfirmationEmail().getBody(), true, true);
+                        notification.getEmail().getConfirmationEmail().getBody(), true, true);
                     log.info("Sent confirmation to recipient = {}", recipient);
                 });
                 // update notification status

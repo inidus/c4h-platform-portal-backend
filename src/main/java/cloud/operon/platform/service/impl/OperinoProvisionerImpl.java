@@ -5,11 +5,14 @@ import cloud.operon.platform.domain.Patient;
 import cloud.operon.platform.service.MailService;
 import cloud.operon.platform.service.OperinoProvisioner;
 import cloud.operon.platform.service.OperinoService;
+import cloud.operon.platform.service.util.ParameterCollector;
 import cloud.operon.platform.service.util.ThinkEhrRestClient;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import org.apache.commons.codec.binary.Base64;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
@@ -17,14 +20,17 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -76,25 +82,27 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         // create Map of data to be posted for domain creation
-        Map<String, String> data= operinoService.getConfigForOperino(operino);
+        Map<String, String> config = operinoService.getConfigForOperino(operino);
         // save token for use later on
-        String token = data.get("token");
-        // remove token before submitting data
-        data.remove("token");
+        String token = config.get(OperinoService.TOKEN);
 
         // post data to api
         HttpEntity<Map<String, String>> getRequst = new HttpEntity<>(headers);
         log.info("getRequest = " + getRequst);
+
+        // remove token before submitting data
+        config.remove(OperinoService.TOKEN);
+
         try {
             ResponseEntity<List> getResponse = restTemplate.exchange(domainUrl, HttpMethod.GET, getRequst, List.class);
             log.debug("getResponse = " + getResponse);
-            if(getResponse.getStatusCode() == HttpStatus.OK && !getResponse.getBody().contains(operino.getDomain())){
+            if (getResponse.getStatusCode() == HttpStatus.OK && !getResponse.getBody().contains(operino.getDomain())) {
 
-                HttpEntity<Map<String, String>> domainRequest = new HttpEntity<>(data, headers);
+                HttpEntity<Map<String, String>> domainRequest = new HttpEntity<>(config, headers);
                 log.debug("domainRequest = " + domainRequest);
                 ResponseEntity<String> domainResponse = restTemplate.postForEntity(domainUrl, domainRequest, String.class);
                 log.debug("domainResponse = " + domainResponse);
-                if(domainResponse.getStatusCode() == HttpStatus.CREATED) {
+                if (domainResponse.getStatusCode() == HttpStatus.CREATED) {
                     // create template headers for xml data post
                     HttpHeaders templateHeaders = new HttpHeaders();
                     templateHeaders.setContentType(MediaType.APPLICATION_XML);
@@ -113,7 +121,7 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
 
                         // now call ehrscape_provisioner endpoint with map and a parameter for data file
                         templateHeaders.setContentType(MediaType.APPLICATION_JSON);
-                        for(Patient p : patients) {
+                        for (Patient p : patients) {
                             try {
                                 // create patient
                                 String patientId = thinkEhrRestClient.createPatient(templateHeaders, p);
@@ -128,30 +136,30 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
                                 String compositionId = thinkEhrRestClient.createComposition(templateHeaders, ehrId, "Vital Signs Encounter (Composition)", agentName, compositionPath);
                                 log.debug("Created composition with Id = {}", compositionId);
                                 // -- first process allergy template compositions
-                                for(int i=1; i<7; i++){
+                                for (int i = 1; i < 7; i++) {
                                     // create composition file path
-                                    compositionPath = "sample_requests/allergies/AllergiesList_" +i+"FLAT.json";
+                                    compositionPath = "sample_requests/allergies/AllergiesList_" + i + "FLAT.json";
                                     compositionId = thinkEhrRestClient.createComposition(templateHeaders, ehrId, "IDCR Allergies List.v0", agentName, compositionPath);
                                     log.debug("Created composition with Id = {}", compositionId);
                                 }
                                 // -- next process lab order compositions
-                                for(int i=1; i<13; i++){
+                                for (int i = 1; i < 13; i++) {
                                     // create composition file path
-                                    compositionPath = "sample_requests/orders/IDCR_Lab_Order_FLAT_" +i+".json";
+                                    compositionPath = "sample_requests/orders/IDCR_Lab_Order_FLAT_" + i + ".json";
                                     compositionId = thinkEhrRestClient.createComposition(templateHeaders, ehrId, "IDCR - Laboratory Order.v0", agentName, compositionPath);
                                     log.debug("Created composition with Id = {}", compositionId);
                                 }
                                 // -- next process procedure compositions
-                                for(int i=1; i<7; i++){
+                                for (int i = 1; i < 7; i++) {
                                     // create composition file path
-                                    compositionPath = "sample_requests/procedures/IDCR_Procedures_List_FLAT_" +i+".json";
+                                    compositionPath = "sample_requests/procedures/IDCR_Procedures_List_FLAT_" + i + ".json";
                                     compositionId = thinkEhrRestClient.createComposition(templateHeaders, ehrId, "IDCR Procedures List.v0", agentName, compositionPath);
                                     log.debug("Created composition with Id = {}", compositionId);
                                 }
                                 // -- next process lab result compositions
-                                for(int i=1; i<13; i++){
+                                for (int i = 1; i < 13; i++) {
                                     // create composition file path
-                                    compositionPath = "sample_requests/lab-results/IDCR_Lab_Report_INPUT_FLAT_" +i+".json";
+                                    compositionPath = "sample_requests/lab-results/IDCR_Lab_Report_INPUT_FLAT_" + i + ".json";
                                     compositionId = thinkEhrRestClient.createComposition(templateHeaders, ehrId, "IDCR - Laboratory Test Report.v0", agentName, compositionPath);
                                     log.debug("Created composition with Id = {}", compositionId);
                                 }
@@ -165,21 +173,26 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
 
                     // if entire provisioning has been completed
                     Map<String, String> configMap = operinoService.getConfigForOperino(operino);
-                    configMap.put("cdr", cdrUrl);
-                    configMap.put("explorer", explorerUrl);
-                    mailService.sendProvisioningCompletionEmail(operino, configMap);
-
+                    try {
+                        ParameterCollector parameterCollector = new ParameterCollector(config, getRequst);
+                        JSONObject json = parameterCollector.getPostmanConfig();
+                        ByteArrayResource attachment = new ByteArrayResource(json.toString().getBytes());
+                        mailService.sendProvisioningCompletionEmail(operino, configMap, attachment);
+                    } catch (JSONException | UnsupportedEncodingException e) {
+                        log.warn("Could not create attachments");
+                        mailService.sendProvisioningCompletionEmail(operino, configMap, null);
+                    }
                 } else {
                     log.error("Unable to create domain for operino {}", operino);
                 }
             } else {
                 log.error("Unable to verify domain {} does not already exist. So operino will NOT be processed.", operino.getDomain());
             }
-        } catch (HttpClientErrorException e) {
+        } catch (RestClientException e) {
             log.error("Error looking up domain using domain id {}. Nested exception is : {}", operino.getDomain(), e);
         }
-
     }
+
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -202,18 +215,17 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
             getResponse = restTemplate.exchange(domainUrl, HttpMethod.GET, getRequest, List.class);
 
             log.info("getResponse = " + getResponse);
-            if(getResponse == null || getResponse.getStatusCode() != HttpStatus.OK) {
+            if (getResponse == null || getResponse.getStatusCode() != HttpStatus.OK) {
                 log.error("Unable to connect to ThinkEHR backend specified by: " + domainUrl);
             } else {
                 // load patients from files
-                for(int i=0; i< 5; i++) {
+                for (int i = 0; i < 5; i++) {
                     patients.addAll(loadPatientsList("data/patients" + (i + 1) + ".csv"));
-                    log.info("Loaded {} patients from file {}", patients.size(), "data/patients"+i+".csv");
+                    log.info("Loaded {} patients from file {}", patients.size(), "data/patients" + i + ".csv");
                 }
                 log.info("Final number of patients = {}", patients.size());
             }
-        }
-        catch (HttpClientErrorException e) {
+        } catch (RestClientException e) {
             log.error("Unable to connect to ThinkEHR backend specified by: " + domainUrl);
         }
     }
@@ -265,4 +277,5 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
     public void setAgentName(String agentName) {
         this.agentName = agentName;
     }
+
 }

@@ -32,7 +32,7 @@ import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 public class OperinoServiceImpl implements OperinoService{
 
     private final Logger log = LoggerFactory.getLogger(OperinoServiceImpl.class);
-    
+
     private final OperinoRepository operinoRepository;
     private final NotificationRepository notificationRepository;
     private final UserService userService;
@@ -73,7 +73,7 @@ public class OperinoServiceImpl implements OperinoService{
 
     /**
      *  Get all the operinos.
-     *  
+     *
      *  @param pageable the pagination information
      *  @return the list of entities
      */
@@ -183,12 +183,15 @@ public class OperinoServiceImpl implements OperinoService{
 
         // create Map of data to be posted for domain creation
         Map<String, String> data= new HashMap<>();
-        data.put("domainName", operino.getDomain());
-        data.put("domainSystemId", operino.getDomain());
-        data.put("name", name);
-        data.put("username", operinoUserName);
-        data.put("password", operinoPassword);
-        data.put("token", base64Creds);
+        data.put(DOMAIN, operino.getDomain());
+        data.put(DOMAIN_SYSTEM_ID, operino.getDomain());
+        data.put(USER_DISPLAY_NAME_OR_DOMAIN, name);
+        data.put(OPERINO_NAME, operino.getName());
+        data.put(USERNAME, operinoUserName);
+        data.put(PASSWORD, operinoPassword);
+        data.put(TOKEN, base64Creds);
+        data.put(BASE_URL, this.thinkEhrRestClient.getBaseUrl());
+
 
         return data;
     }

@@ -5,12 +5,27 @@ import cloud.operon.platform.domain.Operino;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.AbstractMap;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Service Interface for managing Operino.
  */
 public interface OperinoService {
+    String TOKEN = "token";
+    String DOMAIN = "domainName";
+    String OPERINO_NAME = "operinoName";
+    String OPEN_EHR_API = "openEhrApi";
+    String USERNAME = "username" ;
+    String PASSWORD = "password" ;
+
+    // holds the same value as DOMAIN
+    String DOMAIN_SYSTEM_ID = "domainSystemId";
+    String USER_DISPLAY_NAME_OR_DOMAIN = "name";
+
+    String BASE_URL = "baseUrl";
 
     /**
      * Save a operino.
@@ -22,7 +37,7 @@ public interface OperinoService {
 
     /**
      *  Get all the operinos.
-     *  
+     *
      *  @param pageable the pagination information
      *  @return the list of entities
      */
@@ -55,7 +70,7 @@ public interface OperinoService {
      * Search for the operino corresponding to the query.
      *
      *  @param query the query of the search
-     *  
+     *
      *  @param pageable the pagination information
      *  @return the list of entities
      */
