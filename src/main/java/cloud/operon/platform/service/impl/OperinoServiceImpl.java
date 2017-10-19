@@ -192,7 +192,6 @@ public class OperinoServiceImpl implements OperinoService{
         data.put(TOKEN, base64Creds);
         data.put(BASE_URL, this.thinkEhrRestClient.getBaseUrl());
 
-
         return data;
     }
 

@@ -43,12 +43,13 @@ public class ParameterCollectorTest {
     @Test
     public void createPostmanConfig() throws Exception {
         JSONObject postmanConfig = impl.getPostmanConfig();
+        System.out.println(postmanConfig.toString());
     }
 
     @Test
     public void createMarkdown() throws Exception {
         String markdown = impl.getWorkspaceMarkdown();
-        System.out.print(markdown);
+        System.out.println(markdown);
     }
 
 }
