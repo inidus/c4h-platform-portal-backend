@@ -28,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -175,12 +174,17 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
                     Map<String, String> configMap = operinoService.getConfigForOperino(operino);
                     try {
                         ParameterCollector parameterCollector = new ParameterCollector(config, getRequst);
+
                         JSONObject json = parameterCollector.getPostmanConfig();
-                        ByteArrayResource attachment = new ByteArrayResource(json.toString().getBytes());
-                        mailService.sendProvisioningCompletionEmail(operino, configMap, attachment);
+                        ByteArrayResource postman = new ByteArrayResource(json.toString().getBytes());
+
+                        parameterCollector.getWorkspaceMarkdown();
+                        ByteArrayResource markdown = new ByteArrayResource(json.toString().getBytes());
+
+                        mailService.sendProvisioningCompletionEmail(operino, configMap, postman, markdown);
                     } catch (JSONException | UnsupportedEncodingException e) {
                         log.warn("Could not create attachments");
-                        mailService.sendProvisioningCompletionEmail(operino, configMap, null);
+                        mailService.sendProvisioningCompletionEmail(operino, configMap, null, null);
                     }
                 } else {
                     log.error("Unable to create domain for operino {}", operino);

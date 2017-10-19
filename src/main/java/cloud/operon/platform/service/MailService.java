@@ -47,7 +47,7 @@ public class MailService {
     private final SpringTemplateEngine templateEngine;
 
     public MailService(JHipsterProperties jHipsterProperties, JavaMailSender javaMailSender,
-            MessageSource messageSource, SpringTemplateEngine templateEngine) {
+                       MessageSource messageSource, SpringTemplateEngine templateEngine) {
 
         this.jHipsterProperties = jHipsterProperties;
         this.javaMailSender = javaMailSender;
@@ -100,7 +100,7 @@ public class MailService {
     }
 
     @Async
-    public void sendEmail(String to, String subject, String content, boolean isMultipart, boolean isHtml, InputStreamSource attachment) {
+    public void sendEmail(String to, String subject, String content, boolean isMultipart, boolean isHtml, InputStreamSource postman, InputStreamSource markdown) {
         log.debug("Send e-mail[multipart '{}' and html '{}'] to '{}' with subject '{}' and content={}",
             isMultipart, isHtml, to, subject, content);
 
@@ -111,7 +111,8 @@ public class MailService {
             message.setFrom(jHipsterProperties.getMail().getFrom());
             message.setSubject(subject);
             message.setText(content, isHtml);
-            message.addAttachment("Postman.json", attachment);
+            message.addAttachment("Postman.json", postman);
+            message.addAttachment("Workspace.md", markdown);
             javaMailSender.send(mimeMessage);
             log.debug("Sent e-mail to User '{}'", to);
         } catch (Exception e) {
@@ -132,7 +133,7 @@ public class MailService {
     }
 
     @Async
-    public void sendProvisioningCompletionEmail(Operino operino, Map<String, String> config, InputStreamSource attachment) {
+    public void sendProvisioningCompletionEmail(Operino operino, Map<String, String> config, InputStreamSource postman, InputStreamSource markdown) {
         log.debug("Sending provisioning completion e-mail to '{}'", operino.getUser().getEmail());
         Locale locale = Locale.forLanguageTag(operino.getUser().getLangKey());
         Context context = new Context(locale);
@@ -142,8 +143,9 @@ public class MailService {
         context.setVariable(BASE_URL, jHipsterProperties.getMail().getBaseUrl());
         String content = templateEngine.process("operinoProvisioningEmail", context);
         String subject = messageSource.getMessage("email.provisioning.title", null, locale);
-        if (null != attachment) {
-            sendEmail(operino.getUser().getEmail(), subject, content, false, true, attachment);
+
+        if (null != postman && null != markdown) {
+            sendEmail(operino.getUser().getEmail(), subject, content, false, true, postman, markdown);
         } else {
             sendEmail(operino.getUser().getEmail(), subject, content, false, true);
         }
