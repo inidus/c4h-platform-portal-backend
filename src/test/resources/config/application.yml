@@ -88,6 +88,26 @@ jhipster:
     metrics: # DropWizard Metrics configuration, used by MetricsConfiguration
         jmx.enabled: true
 
+# Provisioner settings
+provisioner:
+    domainUrl: https://test.operon.systems/ehrscape-manager/rest/domain/
+    cdrUrl: https://test.operon.systems/rest/v1/
+    explorerUrl: https://test.operon.systems/explorer/explorer
+    subjectNamespace: uk.nhs.nhs_number
+    agentName: operon_provisioner
+    username: oprn_hcbox
+    password: XioTAJoO479
+# Notifier settings
+notifier:
+    openEhrUrl: https://cdr.code4health.org/rest/v1/composition/
+    teamName: Code4Health team
+    skipCompositionIdValidation: true
+thinkehr:
+    baseUrl: https://test.operon.systems/rest/v1/
+    managerUrl: https://test.operon.systems/explorer/
+    adminName: oprn_hcbox
+    password: XioTAJoO479
+
 # ===================================================================
 # Application specific properties
 # Add your own application properties here, see the ApplicationProperties class

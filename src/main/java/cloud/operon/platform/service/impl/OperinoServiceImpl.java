@@ -2,7 +2,10 @@ package cloud.operon.platform.service.impl;
 
 import cloud.operon.platform.domain.Notification;
 import cloud.operon.platform.domain.Operino;
+import cloud.operon.platform.domain.OperinoComponent;
+import cloud.operon.platform.domain.enumeration.HostingType;
 import cloud.operon.platform.domain.enumeration.NotificationStatus;
+import cloud.operon.platform.domain.enumeration.OperinoComponentType;
 import cloud.operon.platform.repository.NotificationRepository;
 import cloud.operon.platform.repository.OperinoRepository;
 import cloud.operon.platform.repository.search.OperinoSearchRepository;
@@ -14,6 +17,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,8 +33,8 @@ import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
  */
 @Service
 @Transactional
-public class OperinoServiceImpl implements OperinoService{
-
+@ConfigurationProperties(prefix = "operinoService", ignoreUnknownFields = false)
+public class OperinoServiceImpl implements OperinoService {
     private final Logger log = LoggerFactory.getLogger(OperinoServiceImpl.class);
 
     private final OperinoRepository operinoRepository;
@@ -39,6 +43,8 @@ public class OperinoServiceImpl implements OperinoService{
     private final OperinoSearchRepository operinoSearchRepository;
     private final RabbitTemplate rabbitTemplate;
     private final ThinkEhrRestClient thinkEhrRestClient;
+
+    private Boolean createNewOperinoWithComponents;
 
     public OperinoServiceImpl(OperinoRepository operinoRepository,
                               NotificationRepository notificationRepository,
@@ -64,6 +70,10 @@ public class OperinoServiceImpl implements OperinoService{
     public Operino save(Operino operino) {
         log.debug("Request to save Operino : {}", operino);
         operino.setUser(userService.getUserWithAuthoritiesByLogin(SecurityUtils.getCurrentUserLogin()).get());
+        // assign all components to operino before save - cascade will save components automatically
+        for (OperinoComponent component : operino.getComponents()) {
+            component.setOperino(operino);
+        }
         Operino result = operinoRepository.save(operino);
         operinoSearchRepository.save(result);
         rabbitTemplate.convertAndSend("operinos", result);
@@ -72,10 +82,10 @@ public class OperinoServiceImpl implements OperinoService{
     }
 
     /**
-     *  Get all the operinos.
+     * Get all the operinos.
      *
-     *  @param pageable the pagination information
-     *  @return the list of entities
+     * @param pageable the pagination information
+     * @return the list of entities
      */
     @Override
     @Transactional(readOnly = true)
@@ -91,19 +101,19 @@ public class OperinoServiceImpl implements OperinoService{
     }
 
     /**
-     *  Get one operino by id.
+     * Get one operino by id.
      *
-     *  @param id the id of the entity
-     *  @return the entity
+     * @param id the id of the entity
+     * @return the entity
      */
     @Override
     @Transactional(readOnly = true)
     public Operino verifyOwnershipAndGet(Long id) {
         log.debug("Request to verify ownership and get Operino : {}", id);
         Operino operino = operinoRepository.findOneByUserAndId(SecurityUtils.getCurrentUserLogin(), id);
-        if(operino != null){
+        if (operino != null) {
             return operino;
-        } else if(userService.isAdmin()){
+        } else if (userService.isAdmin()) {
             return operinoRepository.findOne(id);
         } else {
             return null;
@@ -112,10 +122,10 @@ public class OperinoServiceImpl implements OperinoService{
 
 
     /**
-     *  Get one operino by id.
+     * Get one operino by id.
      *
-     *  @param id the id of the entity
-     *  @return the entity
+     * @param id the id of the entity
+     * @return the entity
      */
     @Override
     @Transactional(readOnly = true)
@@ -125,16 +135,16 @@ public class OperinoServiceImpl implements OperinoService{
     }
 
     /**
-     *  Delete the  operino by id.
+     * Delete the  operino by id.
      *
-     *  @param id the id of the entity
+     * @param id the id of the entity
      */
     @Override
     public void delete(Long id) {
         log.debug("Request to delete Operino : {}", id);
         // veirfy ownership
         Operino operino = findOne(id);
-        if(operino != null) {
+        if (operino != null) {
             // first truncate domain
             thinkEhrRestClient.truncateDomain(operino.getDomain());
             operinoRepository.delete(id);
@@ -147,8 +157,8 @@ public class OperinoServiceImpl implements OperinoService{
     /**
      * Search for the operino corresponding to the query.
      *
-     *  @param query the query of the search
-     *  @return the list of entities
+     * @param query the query of the search
+     * @return the list of entities
      */
     @Override
     @Transactional(readOnly = true)
@@ -161,6 +171,7 @@ public class OperinoServiceImpl implements OperinoService{
 
     /**
      * Gets config associated with an operino
+     *
      * @param operino the operino to get config for
      * @return the congig as a map
      */
@@ -169,12 +180,12 @@ public class OperinoServiceImpl implements OperinoService{
     public Map<String, String> getConfigForOperino(Operino operino) {
 
         String name = operino.getUser().getFirstName() + operino.getUser().getLastName();
-        if(name.length() < 1){
+        if (name.length() < 1) {
             name = operino.getDomain();
         }
 
         // create basic auth token
-        String operinoUserName = operino.getUser().getLogin()+"_"+operino.getDomain();
+        String operinoUserName = operino.getUser().getLogin() + "_" + operino.getDomain();
         String operinoPassword = operino.getUser().getPassword().substring(0, 12);
         String plainCreds = operinoUserName + ":" + operinoPassword;
         byte[] plainCredsBytes = plainCreds.getBytes();
@@ -182,7 +193,7 @@ public class OperinoServiceImpl implements OperinoService{
         String base64Creds = new String(base64CredsBytes);
 
         // create Map of data to be posted for domain creation
-        Map<String, String> data= new HashMap<>();
+        Map<String, String> data = new HashMap<>();
         data.put(DOMAIN, operino.getDomain());
         data.put(DOMAIN_SYSTEM_ID, operino.getDomain());
         data.put(USER_DISPLAY_NAME_OR_DOMAIN, name);
@@ -218,4 +229,31 @@ public class OperinoServiceImpl implements OperinoService{
         }
     }
 
+    /**
+     * Creates and populates the given Operino with components of the specified types
+     *
+     * @param operino The Operino to be populated
+     * @return The same Operino with default components of the specified types
+     */
+    public Operino addDefaultComponents(Operino operino) {
+        log.debug("Creating Operino (with components = {})", createNewOperinoWithComponents);
+        if (createNewOperinoWithComponents && operino.getComponents().size() == 0) {
+            OperinoComponentType[] types = {OperinoComponentType.CDR, OperinoComponentType.DEMOGRAPHICS};
+            for (OperinoComponentType type : types) {
+                OperinoComponent component = new OperinoComponent();
+                component.setType(type);
+                component.setAvailability(true);
+                component.setHosting(HostingType.NON_N3);
+                component.setDiskSpace(Long.valueOf(String.valueOf(1000)));
+                component.setRecordsNumber(Long.valueOf(String.valueOf(1000)));
+                component.setTransactionsLimit(Long.valueOf(String.valueOf(1000)));
+                operino.addComponent(component);
+            }
+        }
+        return operino;
+    }
+
+    public void setCreateNewOperinoWithComponents(Boolean createNewOperinoWithComponents) {
+        this.createNewOperinoWithComponents = createNewOperinoWithComponents;
+    }
 }
