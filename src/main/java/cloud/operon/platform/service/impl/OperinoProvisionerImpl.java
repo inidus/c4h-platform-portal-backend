@@ -2,6 +2,7 @@ package cloud.operon.platform.service.impl;
 
 import cloud.operon.platform.domain.Operino;
 import cloud.operon.platform.domain.Patient;
+import cloud.operon.platform.domain.User;
 import cloud.operon.platform.service.MailService;
 import cloud.operon.platform.service.OperinoProvisioner;
 import cloud.operon.platform.service.OperinoService;
@@ -30,10 +31,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.*;
 
 /**
  * Service Implementation for provisioning Operinos.
@@ -69,12 +69,71 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
     @Override
     @RabbitHandler
     public void receive(@Payload Operino operino) {
+        try {
+            provision(operino);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void provision(Operino project) throws URISyntaxException {
+        HttpHeaders headers = createAuthenticatedHeaders();
+        RestTemplate restTemplate = new RestTemplate();
+
+        createDomain(restTemplate, headers, project.getDomain(), project.getName());
+
+        createUser(restTemplate, headers, project.getDomain(), project.getUser());
+
+        headers.setContentType(MediaType.APPLICATION_XML);
+        uploadTemplate(headers, project);
+
+
+    }
+
+    private void createDomain(RestTemplate restTemplate, HttpHeaders headers, String domainName, String projectName) throws URISyntaxException {
+        URI uri = new URI(cdrUrl + "/admin/rest/v1/domains");
+        String requestJson = "{" +
+            "\"blocked\": \"false\"," +
+            "\"description\": \"" + projectName + "\"," +
+            "\"name\": \"" + domainName + "\"," +
+            "\"systemId\": \"" + domainName + "\"" +
+            "}";
+        HttpEntity<Object> request = new HttpEntity<>(requestJson, headers);
+
+        restTemplate.postForLocation(uri, request);
+    }
+
+    private void createUser(RestTemplate restTemplate, HttpHeaders headers, String domainName, User domainUser) throws URISyntaxException {
+        URI uri = new URI(cdrUrl + "/admin/rest/v1/users");
+
+        String requestJson = "{" +
+            "\"username\": \"" + domainUser.getLogin() + "\"," +
+            "\"password\": \"" + domainUser.getPassword() + "\"," +
+            "\"name\": \"" + domainUser.getLogin() + "\"," +
+            "\"externalRef\": null," +
+            "\"blocked\": false," +
+            "\"defaultDomain\": \"" + domainName + "\"," +
+            "\"roles\": {\"" + domainName + "\": [\"ROLE_ADMIN\"]}," +
+            "\"superUser\": false" +
+            "}";
+        HttpEntity<Object> request = new HttpEntity<>(requestJson, headers);
+
+        restTemplate.postForLocation(uri, request);
+    }
+
+    private HttpHeaders createAuthenticatedHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+        String auth = calculateBase64Auth(username, password);
+        headers.add("Authorization", "Basic " + auth);
+        return headers;
+    }
+
+    private void provisionLegacy(@Payload Operino operino) {
         log.info("Received operino {}", operino);
         // now build variables for posting to ehrscape provisioner
-        String plainCreds = username + ":" + password;
-        byte[] plainCredsBytes = plainCreds.getBytes();
-        byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes);
-        String base64Creds = new String(base64CredsBytes);
+        String base64Creds = calculateBase64Auth(username, password);
         // set headers
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Basic " + base64Creds);
@@ -82,15 +141,9 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
 
         // create Map of data to be posted for domain creation
         Map<String, String> config = operinoService.getConfigForOperino(operino);
-        // save token for use later on
-        String token = config.get(OperinoService.TOKEN);
-
         // post data to api
         HttpEntity<Map<String, String>> getRequst = new HttpEntity<>(headers);
         log.info("getRequest = " + getRequst);
-
-        // remove token before submitting data
-        config.remove(OperinoService.TOKEN);
 
         try {
             ResponseEntity<List> getResponse = restTemplate.exchange(domainUrl, HttpMethod.GET, getRequst, List.class);
@@ -102,84 +155,18 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
                 ResponseEntity<String> domainResponse = restTemplate.postForEntity(domainUrl, domainRequest, String.class);
                 log.debug("domainResponse = " + domainResponse);
                 if (domainResponse.getStatusCode() == HttpStatus.CREATED) {
-                    // create template headers for xml data post
-                    HttpHeaders templateHeaders = new HttpHeaders();
-                    templateHeaders.setContentType(MediaType.APPLICATION_XML);
-                    templateHeaders.add("Authorization", "Basic " + token);
-                    // upload various templates - we have to upload at least on template as work around fo EhrExplorer bug
-                    thinkEhrRestClient.uploadTemplate(templateHeaders, "sample_requests/problems/problems-template.xml");
-                    // now if user has requested provisioning, we upload other templates and generated data
-                    if (operino.getProvision()) {
-                        thinkEhrRestClient.uploadTemplate(templateHeaders, "sample_requests/allergies/allergies-template.xml");
-                        thinkEhrRestClient.uploadTemplate(templateHeaders, "sample_requests/lab-results/lab-results-template.xml");
-                        thinkEhrRestClient.uploadTemplate(templateHeaders, "sample_requests/orders/orders-template.xml");
-                        thinkEhrRestClient.uploadTemplate(templateHeaders, "sample_requests/vital-signs/vital-signs-template.xml");
-                        thinkEhrRestClient.uploadTemplate(templateHeaders, "sample_requests/procedures/procedures-template.xml");
-
-                        // now call provisioner url with parameters to populate dummy data against problem diagnosis template
-
-                        // now call ehrscape_provisioner endpoint with map and a parameter for data file
-                        templateHeaders.setContentType(MediaType.APPLICATION_JSON);
-                        for (Patient p : patients) {
-                            try {
-                                // create patient
-                                String patientId = thinkEhrRestClient.createPatient(templateHeaders, p);
-                                log.debug("Created patient with Id = {}", patientId);
-                                // create ehr
-                                String ehrId = thinkEhrRestClient.createEhr(p, templateHeaders, subjectNamespace, p.getNhsNumber(), agentName);
-                                log.debug("Created ehr with Id = {}", ehrId);
-                                // now upload compositions against each template loaded above
-                                // -- first process vital signs template compositions
-                                // create composition file path
-                                String compositionPath = "sample_requests/vital-signs/vital-signs-composition.json";
-                                String compositionId = thinkEhrRestClient.createComposition(templateHeaders, ehrId, "Vital Signs Encounter (Composition)", agentName, compositionPath);
-                                log.debug("Created composition with Id = {}", compositionId);
-                                // -- first process allergy template compositions
-                                for (int i = 1; i < 7; i++) {
-                                    // create composition file path
-                                    compositionPath = "sample_requests/allergies/AllergiesList_" + i + "FLAT.json";
-                                    compositionId = thinkEhrRestClient.createComposition(templateHeaders, ehrId, "IDCR Allergies List.v0", agentName, compositionPath);
-                                    log.debug("Created composition with Id = {}", compositionId);
-                                }
-                                // -- next process lab order compositions
-                                for (int i = 1; i < 13; i++) {
-                                    // create composition file path
-                                    compositionPath = "sample_requests/orders/IDCR_Lab_Order_FLAT_" + i + ".json";
-                                    compositionId = thinkEhrRestClient.createComposition(templateHeaders, ehrId, "IDCR - Laboratory Order.v0", agentName, compositionPath);
-                                    log.debug("Created composition with Id = {}", compositionId);
-                                }
-                                // -- next process procedure compositions
-                                for (int i = 1; i < 7; i++) {
-                                    // create composition file path
-                                    compositionPath = "sample_requests/procedures/IDCR_Procedures_List_FLAT_" + i + ".json";
-                                    compositionId = thinkEhrRestClient.createComposition(templateHeaders, ehrId, "IDCR Procedures List.v0", agentName, compositionPath);
-                                    log.debug("Created composition with Id = {}", compositionId);
-                                }
-                                // -- next process lab result compositions
-                                for (int i = 1; i < 13; i++) {
-                                    // create composition file path
-                                    compositionPath = "sample_requests/lab-results/IDCR_Lab_Report_INPUT_FLAT_" + i + ".json";
-                                    compositionId = thinkEhrRestClient.createComposition(templateHeaders, ehrId, "IDCR - Laboratory Test Report.v0", agentName, compositionPath);
-                                    log.debug("Created composition with Id = {}", compositionId);
-                                }
-
-                            } catch (IOException e) {
-                                log.error("Error processing json to submit for composition. Nested exception is : ", e);
-                            }
-                        }
-
-                    }
+                    uploadTemplate(headers, operino);
 
                     // if entire provisioning has been completed
                     Map<String, String> configMap = operinoService.getConfigForOperino(operino);
                     try {
                         ParameterCollector parameterCollector = new ParameterCollector(config, getRequst);
 
-                        JSONObject json = parameterCollector.getPostmanConfig();
-                        ByteArrayResource postman = new ByteArrayResource(json.toString().getBytes());
+                        JSONObject postMan = parameterCollector.getPostmanConfig();
+                        ByteArrayResource postman = new ByteArrayResource(postMan.toString().getBytes());
 
-                        parameterCollector.getWorkspaceMarkdown();
-                        ByteArrayResource markdown = new ByteArrayResource(json.toString().getBytes());
+                        String md = parameterCollector.getWorkspaceMarkdown();
+                        ByteArrayResource markdown = new ByteArrayResource(md.toString().getBytes());
 
                         mailService.sendProvisioningCompletionEmail(operino, configMap, postman, markdown);
                     } catch (JSONException | UnsupportedEncodingException e) {
@@ -197,15 +184,84 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
         }
     }
 
+    private void uploadTemplate(HttpHeaders headers, @Payload Operino operino) {
+        // upload various templates - we have to upload at least on template as work around fo EhrExplorer bug
+        thinkEhrRestClient.uploadTemplate(headers, "sample_requests/problems/problems-template.xml");
+        // now if user has requested provisioning, we upload other templates and generated data
+        if (operino.getProvision()) {
+            thinkEhrRestClient.uploadTemplate(headers, "sample_requests/allergies/allergies-template.xml");
+            thinkEhrRestClient.uploadTemplate(headers, "sample_requests/lab-results/lab-results-template.xml");
+            thinkEhrRestClient.uploadTemplate(headers, "sample_requests/orders/orders-template.xml");
+            thinkEhrRestClient.uploadTemplate(headers, "sample_requests/vital-signs/vital-signs-template.xml");
+            thinkEhrRestClient.uploadTemplate(headers, "sample_requests/procedures/procedures-template.xml");
+            createPatients(headers);
+        }
+    }
+
+    private void createPatients(HttpHeaders headers) {
+        // now call ehrscape_provisioner endpoint with map and a parameter for data file
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        for (Patient p : patients) {
+            try {
+                // create patient
+                String patientId = thinkEhrRestClient.createPatient(headers, p);
+                log.debug("Created patient with Id = {}", patientId);
+                // create ehr
+                String ehrId = thinkEhrRestClient.createEhr(p, headers, subjectNamespace, p.getNhsNumber(), agentName);
+                log.debug("Created ehr with Id = {}", ehrId);
+                // now upload compositions against each template loaded above
+                // -- first process vital signs template compositions
+                // create composition file path
+                String compositionPath = "sample_requests/vital-signs/vital-signs-composition.json";
+                String compositionId = thinkEhrRestClient.createComposition(headers, ehrId, "Vital Signs Encounter (Composition)", agentName, compositionPath);
+                log.debug("Created composition with Id = {}", compositionId);
+                // -- first process allergy template compositions
+                for (int i = 1; i < 7; i++) {
+                    // create composition file path
+                    compositionPath = "sample_requests/allergies/AllergiesList_" + i + "FLAT.json";
+                    compositionId = thinkEhrRestClient.createComposition(headers, ehrId, "IDCR Allergies List.v0", agentName, compositionPath);
+                    log.debug("Created composition with Id = {}", compositionId);
+                }
+                // -- next process lab order compositions
+                for (int i = 1; i < 13; i++) {
+                    // create composition file path
+                    compositionPath = "sample_requests/orders/IDCR_Lab_Order_FLAT_" + i + ".json";
+                    compositionId = thinkEhrRestClient.createComposition(headers, ehrId, "IDCR - Laboratory Order.v0", agentName, compositionPath);
+                    log.debug("Created composition with Id = {}", compositionId);
+                }
+                // -- next process procedure compositions
+                for (int i = 1; i < 7; i++) {
+                    // create composition file path
+                    compositionPath = "sample_requests/procedures/IDCR_Procedures_List_FLAT_" + i + ".json";
+                    compositionId = thinkEhrRestClient.createComposition(headers, ehrId, "IDCR Procedures List.v0", agentName, compositionPath);
+                    log.debug("Created composition with Id = {}", compositionId);
+                }
+                // -- next process lab result compositions
+                for (int i = 1; i < 13; i++) {
+                    // create composition file path
+                    compositionPath = "sample_requests/lab-results/IDCR_Lab_Report_INPUT_FLAT_" + i + ".json";
+                    compositionId = thinkEhrRestClient.createComposition(headers, ehrId, "IDCR - Laboratory Test Report.v0", agentName, compositionPath);
+                    log.debug("Created composition with Id = {}", compositionId);
+                }
+
+            } catch (IOException e) {
+                log.error("Error processing json to submit for composition. Nested exception is : ", e);
+            }
+        }
+    }
+
+    private String calculateBase64Auth(String user, String pass) {
+        String plainCreds = user + ":" + pass;
+        byte[] plainCredsBytes = plainCreds.getBytes();
+        byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes);
+        return new String(base64CredsBytes);
+    }
 
     @Override
     public void afterPropertiesSet() throws Exception {
 
         // verify we are able to connect to thinkehr instance
-        String plainCreds = username + ":" + password;
-        byte[] plainCredsBytes = plainCreds.getBytes();
-        byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes);
-        String base64Creds = new String(base64CredsBytes);
+        String base64Creds = calculateBase64Auth(username, password);
         // set headers
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Basic " + base64Creds);
