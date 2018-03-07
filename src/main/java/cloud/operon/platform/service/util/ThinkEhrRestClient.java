@@ -32,6 +32,7 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "thinkehr", ignoreUnknownFields = false)
 public class ThinkEhrRestClient {
 
+    private final Logger log = LoggerFactory.getLogger(ThinkEhrRestClient.class);
     String adminName;
     String password;
     String baseUrl;
@@ -40,7 +41,6 @@ public class ThinkEhrRestClient {
     RestTemplate restTemplate;
     @Autowired
     ObjectMapper objectMapper;
-    private final Logger log = LoggerFactory.getLogger(ThinkEhrRestClient.class);
 
     ResponseEntity<Map> doPost(String url, HttpHeaders httpHeaders, Object body) throws JsonProcessingException {
 
@@ -53,14 +53,21 @@ public class ThinkEhrRestClient {
         return responseEntity;
     }
 
+    public static String createBasicAuthString(String adminName, String password) {
+        String plainCreds = adminName + ":" + password;
+        byte[] plainCredsBytes = plainCreds.getBytes();
+        byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes);
+        return new String(base64CredsBytes);
+    }
+
     public ResponseEntity truncateDomain(String domainSystemId) {
         // url is managerUrl+/domain/{{domainSystemId}}/truncate
         HttpEntity<Object> request = new HttpEntity<>(getAdminHeaders());
         log.debug("request = " + request);
 
-        ResponseEntity<Map> responseEntity = restTemplate.postForEntity(managerUrl+"domain/" +domainSystemId + "/truncate", request, Map.class);
+        ResponseEntity<Map> responseEntity = restTemplate.postForEntity(managerUrl + "domain/" + domainSystemId + "/truncate", request, Map.class);
         log.debug("responseEntity.getBody() = {}", responseEntity.getBody());
-        if(responseEntity.getStatusCode() == HttpStatus.OK) {
+        if (responseEntity.getStatusCode() == HttpStatus.OK) {
             log.info("Successfully deleted domain {}", domainSystemId);
         } else {
             log.error("Unable to delete domain {}", domainSystemId);
@@ -74,7 +81,7 @@ public class ThinkEhrRestClient {
         log.debug("responseEntity = {}", responseEntity);
         log.debug("responseEntity.getBody() = {}", responseEntity.getBody());
         Map response = responseEntity.getBody();
-        if(responseEntity.getStatusCode() == HttpStatus.CREATED) {
+        if (responseEntity.getStatusCode() == HttpStatus.CREATED) {
             Map<String, String> meta = (Map<String, String>) response.get("meta");
             String href = meta.get("href");
             return href.substring(href.lastIndexOf('/') + 1);
@@ -86,23 +93,23 @@ public class ThinkEhrRestClient {
     public String createEhr(Patient patient, HttpHeaders httpHeaders, String subjectNamespace, String subjectId, String commiterName) throws IOException {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl + "ehr")
-                .queryParam("subjectNamespace", subjectNamespace)
-                .queryParam("subjectId", subjectId)
-                .queryParam("commiterName", commiterName);
+            .queryParam("subjectNamespace", subjectNamespace)
+            .queryParam("subjectId", subjectId)
+            .queryParam("commiterName", commiterName);
 
         // create patient and then update it - doing a single post to create wont set all additional details
         HttpEntity<Object> request = new HttpEntity<>(httpHeaders);
         log.debug("request = " + request);
 
         ResponseEntity<Map> responseEntity = restTemplate.exchange(
-                builder.build().encode().toUri(),
-                HttpMethod.POST,
-                request,
-                Map.class);
+            builder.build().encode().toUri(),
+            HttpMethod.POST,
+            request,
+            Map.class);
         log.debug("responseEntity = {}", responseEntity);
         log.debug("responseEntity.getBody() = {}", responseEntity.getBody());
         Map response = responseEntity.getBody();
-        if(responseEntity.getStatusCode() == HttpStatus.CREATED) {
+        if (responseEntity.getStatusCode() == HttpStatus.CREATED) {
             String ehrId = response.get("ehrId").toString();
             log.debug("ehrId = {}", ehrId);
 
@@ -111,7 +118,7 @@ public class ThinkEhrRestClient {
             BufferedReader bufReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
             StringBuilder sb = new StringBuilder();
             String line = bufReader.readLine();
-            while(line != null){
+            while (line != null) {
                 sb.append(line).append("\n");
                 line = bufReader.readLine();
             }
@@ -130,14 +137,14 @@ public class ThinkEhrRestClient {
             builder = UriComponentsBuilder.fromHttpUrl(baseUrl + "ehr/status/" + ehrId);
 
             responseEntity = restTemplate.exchange(
-                    builder.build().encode().toUri(),
-                    HttpMethod.PUT,
-                    request,
-                    Map.class);
+                builder.build().encode().toUri(),
+                HttpMethod.PUT,
+                request,
+                Map.class);
             log.debug("EHR PUT responseEntity = {}", responseEntity);
             log.debug("EHR PUT responseEntity.getBody() = {}", responseEntity.getBody());
             response = responseEntity.getBody();
-            if(responseEntity.getStatusCode() == HttpStatus.OK) {
+            if (responseEntity.getStatusCode() == HttpStatus.OK) {
                 Map<String, String> meta = (Map<String, String>) response.get("meta");
                 String href = meta.get("href");
                 return href.substring(href.lastIndexOf('/') + 1);
@@ -152,24 +159,24 @@ public class ThinkEhrRestClient {
     public String createComposition(HttpHeaders httpHeaders, String ehrId, String templateId, String commiterName, String compositionPath) throws IOException {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl + "composition")
-                .queryParam("ehrId", ehrId)
-                .queryParam("templateId", templateId)
-                .queryParam("commiterName", commiterName)
-                .queryParam("format", "FLAT");
+            .queryParam("ehrId", ehrId)
+            .queryParam("templateId", templateId)
+            .queryParam("commiterName", commiterName)
+            .queryParam("format", "FLAT");
 
         Map data = objectMapper.readValue(ThinkEhrRestClient.class.getClassLoader().getResourceAsStream(compositionPath), Map.class);
         HttpEntity<Object> request = new HttpEntity<>(objectMapper.writeValueAsString(data), httpHeaders);
         log.debug("request = " + request);
 
         ResponseEntity<Map> responseEntity = restTemplate.exchange(
-                builder.build().encode().toUri(),
-                HttpMethod.POST,
-                request,
-                Map.class);
+            builder.build().encode().toUri(),
+            HttpMethod.POST,
+            request,
+            Map.class);
         log.debug("responseEntity = {}", responseEntity);
         log.debug("responseEntity.getBody() = {}", responseEntity.getBody());
         Map response = responseEntity.getBody();
-        if(responseEntity.getStatusCode() == HttpStatus.CREATED) {
+        if (responseEntity.getStatusCode() == HttpStatus.CREATED) {
             return response.get("compositionUid").toString();
         } else {
             throw new RuntimeException("Unable to create composition");
@@ -179,12 +186,12 @@ public class ThinkEhrRestClient {
     public void uploadTemplate(HttpHeaders httpHeaders, String templatePath) {
 
         String templateToSubmit = null;
-        try (InputStream inputStream = ThinkEhrRestClient.class.getClassLoader().getResourceAsStream(templatePath)){
+        try (InputStream inputStream = ThinkEhrRestClient.class.getClassLoader().getResourceAsStream(templatePath)) {
             BufferedReader bufReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
 
             StringBuilder sb = new StringBuilder();
             String line = bufReader.readLine();
-            while(line != null){
+            while (line != null) {
                 sb.append(line).append("\n");
                 line = bufReader.readLine();
             }
@@ -193,10 +200,10 @@ public class ThinkEhrRestClient {
 
             HttpEntity<String> templateRequest = new HttpEntity<>(templateToSubmit, httpHeaders);
             log.debug("templateRequest = " + templateRequest);
-            ResponseEntity templateResponse = restTemplate.postForEntity(baseUrl+"template", templateRequest, String.class);
+            ResponseEntity templateResponse = restTemplate.postForEntity(baseUrl + "template", templateRequest, String.class);
             log.debug("templateResponse = " + templateResponse);
 
-        } catch (NullPointerException | IOException e){
+        } catch (NullPointerException | IOException e) {
             log.error("Unable to read init template from class path. Nested exception is : ", e);
         } finally {
             log.info("Init template : {}", templateToSubmit);
@@ -205,6 +212,7 @@ public class ThinkEhrRestClient {
 
     /**
      * Utility method for wrapping {@link Patient} object in the format that ThinkEhr expects
+     *
      * @param patient
      * @return
      */
@@ -241,21 +249,13 @@ public class ThinkEhrRestClient {
     }
 
     private HttpHeaders getAdminHeaders() {
-        // now build variables for posting to ehrscape provisioner
-        String plainCreds = adminName + ":" + password;
-        byte[] plainCredsBytes = plainCreds.getBytes();
-        byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes);
-        String base64Creds = new String(base64CredsBytes);
-        // set headers
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Basic " + base64Creds);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        return headers;
-    }
+        String base64Creds = createBasicAuthString(this.adminName, this.password);
+        headers.add("Authorization", "Basic " + base64Creds);
 
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
+        return headers;
     }
 
     public void setPassword(String password) {
@@ -272,5 +272,9 @@ public class ThinkEhrRestClient {
 
     public String getBaseUrl() {
         return baseUrl;
+    }
+
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
     }
 }

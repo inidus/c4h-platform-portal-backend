@@ -6,14 +6,10 @@ import cloud.operon.platform.domain.User;
 import cloud.operon.platform.service.MailService;
 import cloud.operon.platform.service.OperinoProvisioner;
 import cloud.operon.platform.service.OperinoService;
-import cloud.operon.platform.service.util.ParameterCollector;
 import cloud.operon.platform.service.util.ThinkEhrRestClient;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import org.apache.commons.codec.binary.Base64;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
@@ -21,7 +17,6 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
@@ -30,7 +25,6 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -44,6 +38,7 @@ import java.util.*;
 @ConfigurationProperties(prefix = "provisioner", ignoreUnknownFields = false)
 public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisioner {
 
+    private static final String DOMAIN_PASSWORD = "$2a$10$619ki";
     private final Logger log = LoggerFactory.getLogger(OperinoProvisionerImpl.class);
     String domainUrl;
     String cdrUrl;
@@ -78,6 +73,9 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
 
     private void provision(Operino project) throws URISyntaxException {
         HttpHeaders headers = createAuthenticatedHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+
         RestTemplate restTemplate = new RestTemplate();
 
         createDomain(restTemplate, headers, project.getDomain(), project.getName());
@@ -107,8 +105,8 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
         URI uri = new URI(cdrUrl + "/admin/rest/v1/users");
 
         String requestJson = "{" +
-            "\"username\": \"" + domainUser.getLogin() + "\"," +
-            "\"password\": \"" + domainUser.getPassword() + "\"," +
+            "\"username\": \"" + domainName + "\"," +
+            "\"password\": \"" + DOMAIN_PASSWORD + "\"," +
             "\"name\": \"" + domainUser.getLogin() + "\"," +
             "\"externalRef\": null," +
             "\"blocked\": false," +
@@ -123,65 +121,9 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
 
     private HttpHeaders createAuthenticatedHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-        String auth = calculateBase64Auth(username, password);
+        String auth = ThinkEhrRestClient.createBasicAuthString(username, password);
         headers.add("Authorization", "Basic " + auth);
         return headers;
-    }
-
-    private void provisionLegacy(@Payload Operino operino) {
-        log.info("Received operino {}", operino);
-        // now build variables for posting to ehrscape provisioner
-        String base64Creds = calculateBase64Auth(username, password);
-        // set headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Basic " + base64Creds);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        // create Map of data to be posted for domain creation
-        Map<String, String> config = operinoService.getConfigForOperino(operino);
-        // post data to api
-        HttpEntity<Map<String, String>> getRequst = new HttpEntity<>(headers);
-        log.info("getRequest = " + getRequst);
-
-        try {
-            ResponseEntity<List> getResponse = restTemplate.exchange(domainUrl, HttpMethod.GET, getRequst, List.class);
-            log.debug("getResponse = " + getResponse);
-            if (getResponse.getStatusCode() == HttpStatus.OK && !getResponse.getBody().contains(operino.getDomain())) {
-
-                HttpEntity<Map<String, String>> domainRequest = new HttpEntity<>(config, headers);
-                log.debug("domainRequest = " + domainRequest);
-                ResponseEntity<String> domainResponse = restTemplate.postForEntity(domainUrl, domainRequest, String.class);
-                log.debug("domainResponse = " + domainResponse);
-                if (domainResponse.getStatusCode() == HttpStatus.CREATED) {
-                    uploadTemplate(headers, operino);
-
-                    // if entire provisioning has been completed
-                    Map<String, String> configMap = operinoService.getConfigForOperino(operino);
-                    try {
-                        ParameterCollector parameterCollector = new ParameterCollector(config, getRequst);
-
-                        JSONObject postMan = parameterCollector.getPostmanConfig();
-                        ByteArrayResource postman = new ByteArrayResource(postMan.toString().getBytes());
-
-                        String md = parameterCollector.getWorkspaceMarkdown();
-                        ByteArrayResource markdown = new ByteArrayResource(md.toString().getBytes());
-
-                        mailService.sendProvisioningCompletionEmail(operino, configMap, postman, markdown);
-                    } catch (JSONException | UnsupportedEncodingException e) {
-                        log.warn("Could not create attachments");
-                        mailService.sendProvisioningCompletionEmail(operino, configMap, null, null);
-                    }
-                } else {
-                    log.error("Unable to create domain for operino {}", operino);
-                }
-            } else {
-                log.error("Unable to verify domain {} does not already exist. So operino will NOT be processed.", operino.getDomain());
-            }
-        } catch (RestClientException e) {
-            log.error("Error looking up domain using domain id {}. Nested exception is : {}", operino.getDomain(), e);
-        }
     }
 
     private void uploadTemplate(HttpHeaders headers, @Payload Operino operino) {
@@ -250,31 +192,20 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
         }
     }
 
-    private String calculateBase64Auth(String user, String pass) {
-        String plainCreds = user + ":" + pass;
-        byte[] plainCredsBytes = plainCreds.getBytes();
-        byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes);
-        return new String(base64CredsBytes);
-    }
-
     @Override
-    public void afterPropertiesSet() throws Exception {
-
-        // verify we are able to connect to thinkehr instance
-        String base64Creds = calculateBase64Auth(username, password);
-        // set headers
+    public void afterPropertiesSet() {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Basic " + base64Creds);
+        headers.add("Authorization", "Basic " + ThinkEhrRestClient.createBasicAuthString(username, password));
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         // connect to api
         HttpEntity<Map<String, String>> getRequest = new HttpEntity<>(headers);
-        log.info("getRequest = " + getRequest);
+        log.debug("getRequest = " + getRequest);
         ResponseEntity<List> getResponse;
         try {
             getResponse = restTemplate.exchange(domainUrl, HttpMethod.GET, getRequest, List.class);
 
-            log.info("getResponse = " + getResponse);
+            log.debug("getResponse = " + getResponse);
             if (getResponse == null || getResponse.getStatusCode() != HttpStatus.OK) {
                 log.error("Unable to connect to ThinkEHR backend specified by: " + domainUrl);
             } else {

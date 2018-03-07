@@ -13,7 +13,6 @@ import cloud.operon.platform.security.SecurityUtils;
 import cloud.operon.platform.service.OperinoService;
 import cloud.operon.platform.service.UserService;
 import cloud.operon.platform.service.util.ThinkEhrRestClient;
-import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -184,13 +183,8 @@ public class OperinoServiceImpl implements OperinoService {
             name = operino.getDomain();
         }
 
-        // create basic auth token
-        String operinoUserName = operino.getUser().getLogin() + "_" + operino.getDomain();
-        String operinoPassword = operino.getUser().getPassword().substring(0, 12);
-        String plainCreds = operinoUserName + ":" + operinoPassword;
-        byte[] plainCredsBytes = plainCreds.getBytes();
-        byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes);
-        String base64Creds = new String(base64CredsBytes);
+        String user = operino.getUser().getLogin() + "_" + operino.getDomain();
+        String pass = operino.getUser().getPassword().substring(0, 12);
 
         // create Map of data to be posted for domain creation
         Map<String, String> data = new HashMap<>();
@@ -198,9 +192,9 @@ public class OperinoServiceImpl implements OperinoService {
         data.put(DOMAIN_SYSTEM_ID, operino.getDomain());
         data.put(USER_DISPLAY_NAME_OR_DOMAIN, name);
         data.put(OPERINO_NAME, operino.getName());
-        data.put(USERNAME, operinoUserName);
-        data.put(PASSWORD, operinoPassword);
-        data.put(TOKEN, base64Creds);
+        data.put(USERNAME, user);
+        data.put(PASSWORD, pass);
+        data.put(TOKEN, ThinkEhrRestClient.createBasicAuthString(user, pass));
         data.put(BASE_URL, this.thinkEhrRestClient.getBaseUrl());
 
         return data;

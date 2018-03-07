@@ -6,8 +6,8 @@ import cloud.operon.platform.repository.NotificationRepository;
 import cloud.operon.platform.service.MailService;
 import cloud.operon.platform.service.OperinoService;
 import cloud.operon.platform.service.util.PdfReportGenerator;
+import cloud.operon.platform.service.util.ThinkEhrRestClient;
 import com.lowagie.text.DocumentException;
-import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.*;
@@ -54,24 +54,22 @@ public class NotificationProcessorImpl {
     //    @RabbitListener(queues = "notifications")
     @RabbitHandler
     public void receive(@Payload Notification notification) {
-        log.info("Received notification {}", notification);
+        log.debug("Received notification {}", notification);
 
-        //build call to open ehr backend
-        // set headers
         HttpHeaders headers = new HttpHeaders();
-        if (!skipCompositionIdValidation) {
-            Map<String, String> config = operinoService.getConfigForOperino(notification.getOperino());
-            String plainCreds = config.get(OperinoService.USERNAME) + ":" + config.get(OperinoService.PASSWORD);
-            byte[] plainCredsBytes = plainCreds.getBytes();
-            byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes);
-            String base64Creds = new String(base64CredsBytes);
-
-            headers.add("Authorization", "Basic " + base64Creds);
-        }
         headers.setContentType(MediaType.APPLICATION_JSON);
 
+        if (!skipCompositionIdValidation) {
+            Map<String, String> config = operinoService.getConfigForOperino(notification.getOperino());
+            String user = config.get(OperinoService.USERNAME);
+            String pass = config.get(OperinoService.PASSWORD);
+
+            String base64Creds = ThinkEhrRestClient.createBasicAuthString(user, pass);
+            headers.add("Authorization", "Basic " + base64Creds);
+        }
+
         HttpEntity<Map<String, String>> getRequst = new HttpEntity<>(headers);
-        log.info("getRequest = " + getRequst);
+        log.debug("getRequest = " + getRequst);
         try {
             // create input stream with pdf as content
             String reportFileName = UUID.randomUUID().toString();
