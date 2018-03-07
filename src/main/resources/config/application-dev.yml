@@ -176,7 +176,6 @@ application:
 provisioner:
     domainUrl: http://127.0.0.1:8080/rest/v1/domains
     cdrUrl: http://127.0.0.1:8080
-    explorerUrl: https://explorer.code4health.org/explorer
     subjectNamespace: uk.nhs.nhs_number
     agentName: inidus_provisioner
     username: admin

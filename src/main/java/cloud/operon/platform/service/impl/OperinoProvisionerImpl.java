@@ -3,9 +3,7 @@ package cloud.operon.platform.service.impl;
 import cloud.operon.platform.domain.Operino;
 import cloud.operon.platform.domain.Patient;
 import cloud.operon.platform.domain.User;
-import cloud.operon.platform.service.MailService;
 import cloud.operon.platform.service.OperinoProvisioner;
-import cloud.operon.platform.service.OperinoService;
 import cloud.operon.platform.service.util.ThinkEhrRestClient;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
@@ -40,26 +38,17 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
 
     private static final String DOMAIN_PASSWORD = "$2a$10$619ki";
     private final Logger log = LoggerFactory.getLogger(OperinoProvisionerImpl.class);
+    private final List<Patient> patients = new ArrayList<>();
     String domainUrl;
     String cdrUrl;
-    String explorerUrl;
     String subjectNamespace;
     String username;
     String password;
     String agentName;
-    List<Patient> patients = new ArrayList<>();
-
     @Autowired
     RestTemplate restTemplate;
-
-    @Autowired
-    OperinoService operinoService;
-
     @Autowired
     ThinkEhrRestClient thinkEhrRestClient;
-
-    @Autowired
-    MailService mailService;
 
     @Override
     @RabbitHandler
@@ -72,7 +61,9 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
     }
 
     private void provision(Operino project) throws URISyntaxException {
-        HttpHeaders headers = createAuthenticatedHeaders();
+        HttpHeaders headers = new HttpHeaders();
+        String auth = ThinkEhrRestClient.createBasicAuthString(username, password);
+        headers.add("Authorization", "Basic " + auth);
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 
@@ -84,8 +75,6 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
 
         headers.setContentType(MediaType.APPLICATION_XML);
         uploadTemplate(headers, project);
-
-
     }
 
     private void createDomain(RestTemplate restTemplate, HttpHeaders headers, String domainName, String projectName) throws URISyntaxException {
@@ -117,13 +106,6 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
         HttpEntity<Object> request = new HttpEntity<>(requestJson, headers);
 
         restTemplate.postForLocation(uri, request);
-    }
-
-    private HttpHeaders createAuthenticatedHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        String auth = ThinkEhrRestClient.createBasicAuthString(username, password);
-        headers.add("Authorization", "Basic " + auth);
-        return headers;
     }
 
     private void uploadTemplate(HttpHeaders headers, @Payload Operino operino) {
@@ -221,7 +203,7 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
         }
     }
 
-    public List<Patient> loadPatientsList(String fileName) {
+    private List<Patient> loadPatientsList(String fileName) {
         try {
             CsvSchema bootstrapSchema = CsvSchema.emptySchema().withHeader();
             CsvMapper mapper = new CsvMapper();
@@ -247,10 +229,6 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public void setExplorerUrl(String explorerUrl) {
-        this.explorerUrl = explorerUrl;
     }
 
     public void setCdrUrl(String cdrUrl) {

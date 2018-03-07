@@ -152,7 +152,6 @@ application:
 provisioner:
     domainUrl: https://explorer.code4health.org/ehrscape-manager/rest/domain/
     cdrUrl: https://cdr.code4health.org/rest/v1/
-    explorerUrl: https://explorer.code4health.org/explorer
     subjectNamespace: uk.nhs.nhs_number
     agentName: operon_provisioner
     username:
