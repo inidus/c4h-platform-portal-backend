@@ -11,6 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -19,10 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A naive rest client for ThinkEhr
@@ -42,7 +40,14 @@ public class ThinkEhrRestClient {
     @Autowired
     ObjectMapper objectMapper;
 
-    ResponseEntity<Map> doPost(String url, HttpHeaders httpHeaders, Object body) throws JsonProcessingException {
+    public static String createBasicAuthString(String adminName, String password) {
+        String plainCreds = adminName + ":" + password;
+        byte[] plainCredsBytes = plainCreds.getBytes();
+        byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes);
+        return new String(base64CredsBytes);
+    }
+
+    ResponseEntity<Map> doPost(String url, HttpHeaders httpHeaders, Object body) throws JsonProcessingException, RestClientException {
 
         HttpEntity<Object> request = new HttpEntity<>(objectMapper.writeValueAsString(body), httpHeaders);
         log.debug("request = " + request);
@@ -51,13 +56,6 @@ public class ThinkEhrRestClient {
         log.debug("responseEntity = {}", responseEntity);
 
         return responseEntity;
-    }
-
-    public static String createBasicAuthString(String adminName, String password) {
-        String plainCreds = adminName + ":" + password;
-        byte[] plainCredsBytes = plainCreds.getBytes();
-        byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes);
-        return new String(base64CredsBytes);
     }
 
     public ResponseEntity truncateDomain(String domainSystemId) {
@@ -90,7 +88,7 @@ public class ThinkEhrRestClient {
         }
     }
 
-    public String createEhr(Patient patient, HttpHeaders httpHeaders, String subjectNamespace, String subjectId, String commiterName) throws IOException {
+    public String createEhr(Patient patient, HttpHeaders httpHeaders, String subjectNamespace, String subjectId, String commiterName) {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl + "ehr")
             .queryParam("subjectNamespace", subjectNamespace)
@@ -115,16 +113,10 @@ public class ThinkEhrRestClient {
 
             // read body from existing json template and fill in values
             InputStream inputStream = ThinkEhrRestClient.class.getClassLoader().getResourceAsStream("sample_requests/ehrStatusBody.json");
-            BufferedReader bufReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-            StringBuilder sb = new StringBuilder();
-            String line = bufReader.readLine();
-            while (line != null) {
-                sb.append(line).append("\n");
-                line = bufReader.readLine();
-            }
 
-            // now build string for put request
-            String bodyString = sb.toString();
+            Scanner s = new java.util.Scanner(inputStream).useDelimiter("\\A");
+            String bodyString = s.hasNext() ? s.next() : "";
+
             // now update data with values from patient
             bodyString = bodyString.replaceAll("<subjectId>", subjectId);
             bodyString = bodyString.replaceAll("<subjectNamespace>", subjectNamespace);
@@ -148,12 +140,9 @@ public class ThinkEhrRestClient {
                 Map<String, String> meta = (Map<String, String>) response.get("meta");
                 String href = meta.get("href");
                 return href.substring(href.lastIndexOf('/') + 1);
-            } else {
-                throw new RuntimeException("Unable to create ehr");
             }
-        } else {
-            throw new RuntimeException("Unable to create ehr");
         }
+        return null;
     }
 
     public String createComposition(HttpHeaders httpHeaders, String ehrId, String templateId, String commiterName, String compositionPath) throws IOException {
@@ -206,7 +195,7 @@ public class ThinkEhrRestClient {
         } catch (NullPointerException | IOException e) {
             log.error("Unable to read init template from class path. Nested exception is : ", e);
         } finally {
-            log.info("Init template : {}", templateToSubmit);
+            log.debug("Init template : {}", templateToSubmit);
         }
     }
 

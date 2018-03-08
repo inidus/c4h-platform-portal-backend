@@ -19,6 +19,8 @@ import org.springframework.http.*;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -69,15 +71,37 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
 
         RestTemplate restTemplate = new RestTemplate();
 
-        createDomain(restTemplate, headers, project.getDomain(), project.getName());
+        ResponseEntity<String> response;
+        try {
+            createDomain(restTemplate, headers, project.getDomain(), project.getName());
+        } catch (HttpClientErrorException e) {
+        }
 
-        createUser(restTemplate, headers, project.getDomain(), project.getUser());
+        try {
+            createUser(restTemplate, headers, project.getDomain(), project.getUser());
+        } catch (HttpClientErrorException e) {
+        }
 
         headers.setContentType(MediaType.APPLICATION_XML);
-        uploadTemplate(headers, project);
+        // upload various templates - we have to upload at least on template as work around fo EhrExplorer bug
+        thinkEhrRestClient.uploadTemplate(headers, "sample_requests/problems/problems-template.xml");
+        // now if user has requested provisioning, we upload other templates and generated data
+        if (project.getProvision()) {
+            thinkEhrRestClient.uploadTemplate(headers, "sample_requests/allergies/allergies-template.xml");
+            thinkEhrRestClient.uploadTemplate(headers, "sample_requests/lab-results/lab-results-template.xml");
+            thinkEhrRestClient.uploadTemplate(headers, "sample_requests/orders/orders-template.xml");
+            thinkEhrRestClient.uploadTemplate(headers, "sample_requests/vital-signs/vital-signs-template.xml");
+            thinkEhrRestClient.uploadTemplate(headers, "sample_requests/procedures/procedures-template.xml");
+        }
+
+        if (project.getProvision()) {
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            createPatients(headers);
+        }
+
     }
 
-    private void createDomain(RestTemplate restTemplate, HttpHeaders headers, String domainName, String projectName) throws URISyntaxException {
+    private ResponseEntity<String> createDomain(RestTemplate restTemplate, HttpHeaders headers, String domainName, String projectName) throws URISyntaxException {
         URI uri = new URI(cdrUrl + "/admin/rest/v1/domains");
         String requestJson = "{" +
             "\"blocked\": \"false\"," +
@@ -87,10 +111,10 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
             "}";
         HttpEntity<Object> request = new HttpEntity<>(requestJson, headers);
 
-        restTemplate.postForLocation(uri, request);
+        return restTemplate.exchange(uri, HttpMethod.POST, request, String.class);
     }
 
-    private void createUser(RestTemplate restTemplate, HttpHeaders headers, String domainName, User domainUser) throws URISyntaxException {
+    private ResponseEntity<String> createUser(RestTemplate restTemplate, HttpHeaders headers, String domainName, User domainUser) throws URISyntaxException {
         URI uri = new URI(cdrUrl + "/admin/rest/v1/users");
 
         String requestJson = "{" +
@@ -105,26 +129,11 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
             "}";
         HttpEntity<Object> request = new HttpEntity<>(requestJson, headers);
 
-        restTemplate.postForLocation(uri, request);
-    }
-
-    private void uploadTemplate(HttpHeaders headers, @Payload Operino operino) {
-        // upload various templates - we have to upload at least on template as work around fo EhrExplorer bug
-        thinkEhrRestClient.uploadTemplate(headers, "sample_requests/problems/problems-template.xml");
-        // now if user has requested provisioning, we upload other templates and generated data
-        if (operino.getProvision()) {
-            thinkEhrRestClient.uploadTemplate(headers, "sample_requests/allergies/allergies-template.xml");
-            thinkEhrRestClient.uploadTemplate(headers, "sample_requests/lab-results/lab-results-template.xml");
-            thinkEhrRestClient.uploadTemplate(headers, "sample_requests/orders/orders-template.xml");
-            thinkEhrRestClient.uploadTemplate(headers, "sample_requests/vital-signs/vital-signs-template.xml");
-            thinkEhrRestClient.uploadTemplate(headers, "sample_requests/procedures/procedures-template.xml");
-            createPatients(headers);
-        }
+        return restTemplate.exchange(uri, HttpMethod.POST, request, String.class);
     }
 
     private void createPatients(HttpHeaders headers) {
-        // now call ehrscape_provisioner endpoint with map and a parameter for data file
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        log.info("Creating patients (" + patients.size() + ")");
         for (Patient p : patients) {
             try {
                 // create patient
@@ -168,8 +177,8 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
                     log.debug("Created composition with Id = {}", compositionId);
                 }
 
-            } catch (IOException e) {
-                log.error("Error processing json to submit for composition. Nested exception is : ", e);
+            } catch (HttpServerErrorException | HttpClientErrorException | IOException e) {
+                log.warn("Error creating patient data", e.getMessage());
             }
         }
     }
