@@ -27,7 +27,7 @@ public class OperinoProvisionerImplTest {
     public void connectToThinkEhr() {
         OperinoProvisionerImpl impl = new OperinoProvisionerImpl();
         impl.restTemplate = new RestTemplate();
-        impl.setDomainUrl("http://127.0.0.1:8080/domains");
+        impl.setDomainUrl("http://127.0.0.1:8080/admin/rest/v1/domains");
         impl.setUsername("admin");
         impl.setPassword("admin");
 

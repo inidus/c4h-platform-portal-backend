@@ -145,7 +145,7 @@ public class MailService {
         String subject = messageSource.getMessage("email.provisioning.title", null, locale);
 
         if (null != postman && null != markdown) {
-            sendEmail(operino.getUser().getEmail(), subject, content, false, true, postman, markdown);
+            sendEmail(operino.getUser().getEmail(), subject, content, true, true, postman, markdown);
         } else {
             sendEmail(operino.getUser().getEmail(), subject, content, false, true);
         }

@@ -3,11 +3,16 @@ package cloud.operon.platform.service.impl;
 import cloud.operon.platform.domain.Operino;
 import cloud.operon.platform.domain.Patient;
 import cloud.operon.platform.domain.User;
+import cloud.operon.platform.service.MailService;
 import cloud.operon.platform.service.OperinoProvisioner;
+import cloud.operon.platform.service.OperinoService;
+import cloud.operon.platform.service.util.ParameterCollector;
 import cloud.operon.platform.service.util.ThinkEhrRestClient;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
@@ -15,6 +20,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
@@ -25,9 +31,13 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Service Implementation for provisioning Operinos.
@@ -38,6 +48,9 @@ import java.util.*;
 @ConfigurationProperties(prefix = "provisioner", ignoreUnknownFields = false)
 public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisioner {
 
+    /**
+     * We use the same password for every domain
+     */
     private static final String DOMAIN_PASSWORD = "$2a$10$619ki";
     private final Logger log = LoggerFactory.getLogger(OperinoProvisionerImpl.class);
     private final List<Patient> patients = new ArrayList<>();
@@ -50,38 +63,56 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
     @Autowired
     RestTemplate restTemplate;
     @Autowired
+    OperinoService operinoService;
+    @Autowired
     ThinkEhrRestClient thinkEhrRestClient;
+    @Autowired
+    MailService mailService;
 
     @Override
     @RabbitHandler
-    public void receive(@Payload Operino operino) {
+    public void receive(@Payload Operino project) {
         try {
-            provision(operino);
+            HttpHeaders headers = provision(project);
+
+            sendConfirmationEmail(headers, project);
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            log.warn("Could not provision", e);
         }
     }
 
-    private void provision(Operino project) throws URISyntaxException {
+    private void sendConfirmationEmail(HttpHeaders headers, @Payload Operino project) {
+        Map<String, String> config = operinoService.getConfigForOperino(project);
+        try {
+            ParameterCollector parameterCollector = new ParameterCollector(config, new HttpEntity(headers));
+
+            JSONObject pm = parameterCollector.getPostmanConfig();
+            ByteArrayResource postman = new ByteArrayResource(pm.toString().getBytes());
+
+            String md = parameterCollector.getWorkspaceMarkdown();
+            ByteArrayResource markdown = new ByteArrayResource(md.getBytes());
+
+            mailService.sendProvisioningCompletionEmail(project, config, postman, markdown);
+        } catch (JSONException | UnsupportedEncodingException e) {
+            log.warn("Could not create attachments");
+            mailService.sendProvisioningCompletionEmail(project, config, null, null);
+        }
+    }
+
+    private HttpHeaders provision(Operino project) throws URISyntaxException {
         HttpHeaders headers = new HttpHeaders();
         String auth = ThinkEhrRestClient.createBasicAuthString(username, password);
         headers.add("Authorization", "Basic " + auth);
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
         RestTemplate restTemplate = new RestTemplate();
 
-        ResponseEntity<String> response;
-        try {
-            createDomain(restTemplate, headers, project.getDomain(), project.getName());
-        } catch (HttpClientErrorException e) {
-        }
+        String domainName = project.getDomain();
+        createDomain(restTemplate, headers, domainName, project.getName());
+        createUser(restTemplate, headers, domainName, project.getUser());
 
-        try {
-            createUser(restTemplate, headers, project.getDomain(), project.getUser());
-        } catch (HttpClientErrorException e) {
-        }
-
+        headers.set("Authorization", "Basic " + ThinkEhrRestClient.createBasicAuthString(domainName, DOMAIN_PASSWORD));
         headers.setContentType(MediaType.APPLICATION_XML);
         // upload various templates - we have to upload at least on template as work around fo EhrExplorer bug
         thinkEhrRestClient.uploadTemplate(headers, "sample_requests/problems/problems-template.xml");
@@ -99,6 +130,8 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
             createPatients(headers);
         }
 
+        log.info("Provisioning finished");
+        return headers;
     }
 
     private ResponseEntity<String> createDomain(RestTemplate restTemplate, HttpHeaders headers, String domainName, String projectName) throws URISyntaxException {
@@ -134,8 +167,8 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
 
     private void createPatients(HttpHeaders headers) {
         log.info("Creating patients (" + patients.size() + ")");
-        for (Patient p : patients) {
-            try {
+        try {
+            for (Patient p : patients) {
                 // create patient
                 String patientId = thinkEhrRestClient.createPatient(headers, p);
                 log.debug("Created patient with Id = {}", patientId);
@@ -176,10 +209,9 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
                     compositionId = thinkEhrRestClient.createComposition(headers, ehrId, "IDCR - Laboratory Test Report.v0", agentName, compositionPath);
                     log.debug("Created composition with Id = {}", compositionId);
                 }
-
-            } catch (HttpServerErrorException | HttpClientErrorException | IOException e) {
-                log.warn("Error creating patient data", e.getMessage());
             }
+        } catch (HttpServerErrorException | HttpClientErrorException | IOException e) {
+            log.warn("Error creating patient data", e.getMessage());
         }
     }
 
@@ -201,7 +233,7 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
                 log.error("Unable to connect to ThinkEHR backend specified by: " + domainUrl);
             } else {
                 // load patients from files
-                for (int i = 0; i < 5; i++) {
+                for (int i = 0; i < 1; i++) {
                     patients.addAll(loadPatientsList("data/patients" + (i + 1) + ".csv"));
                     log.info("Loaded {} patients from file {}", patients.size(), "data/patients" + i + ".csv");
                 }

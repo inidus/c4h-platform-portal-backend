@@ -188,14 +188,14 @@ public class ThinkEhrRestClient {
             templateToSubmit = sb.toString();
 
             HttpEntity<String> templateRequest = new HttpEntity<>(templateToSubmit, httpHeaders);
-            log.debug("templateRequest = " + templateRequest);
+            log.trace("templateRequest = " + templateRequest);
             ResponseEntity templateResponse = restTemplate.postForEntity(baseUrl + "template", templateRequest, String.class);
-            log.debug("templateResponse = " + templateResponse);
+            log.trace("templateResponse = " + templateResponse);
 
         } catch (NullPointerException | IOException e) {
             log.error("Unable to read init template from class path. Nested exception is : ", e);
         } finally {
-            log.debug("Init template : {}", templateToSubmit);
+            log.trace("Init template : {}", templateToSubmit);
         }
     }
 
