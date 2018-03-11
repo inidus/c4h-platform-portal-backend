@@ -14,7 +14,8 @@
             "diskSpace": "Disk space",
             "mail": "Email",
             "elasticsearch": "Elasticsearch",
-            "db": "Database"
+            "db": "Database",
+            "rabbit": "RabbitMQ"
         },
         "table": {
             "service": "Service name",
