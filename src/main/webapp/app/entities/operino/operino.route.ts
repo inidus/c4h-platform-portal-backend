@@ -29,14 +29,14 @@ export const operinoRoute: Routes = [
         pageTitle: 'Operinos'
     }
   },
-    //{
-    //    path: 'operino-new',
-    //    component: OperinoPopupComponent,
-    //    data: {
-    //        authorities: ['ROLE_USER'],
-    //        pageTitle: 'Operinos'
-    //    }
-    //},
+    // {
+    //     path: 'operino-new',
+    //     component: OperinoPopupComponent,
+    //     data: {
+    //         authorities: ['ROLE_USER'],
+    //         pageTitle: 'Operinos'
+    //     }
+    // },
     {
         path: 'operino/:id/edit',
         component: OperinoDetailComponent,

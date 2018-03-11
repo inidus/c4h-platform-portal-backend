@@ -56,7 +56,7 @@ public class NotificationProcessorImpl {
     public void receive(@Payload Notification notification) {
         log.info("Received notification {}", notification);
 
-        //build call to open ehr backend
+        // build call to open ehr backend
         // set headers
         HttpHeaders headers = new HttpHeaders();
         if (!skipCompositionIdValidation) {
@@ -117,7 +117,7 @@ public class NotificationProcessorImpl {
             log.error("Error generating pdf from rest call. Nested exception is : ", e);
         }
 
-        //save notification
+        // save notification
 //        notificationRepository.save(notification);
     }
 

@@ -23,7 +23,7 @@ export class OperinoComponent {
         public computeResourceLimit?: number,
         public type?: OperinoComponentType,
         public operino?: Operino
-    ) { 
+    ) {
         this.hosting = HostingType[' NON_N3'];
     }
 }

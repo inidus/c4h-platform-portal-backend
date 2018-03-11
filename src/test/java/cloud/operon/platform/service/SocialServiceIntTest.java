@@ -165,7 +165,7 @@ public class SocialServiceIntTest {
         // Exercise
         socialService.createSocialUser(connection, "fr");
 
-        //Verify
+        // Verify
         User user = userRepository.findOneByEmail("mail@mail.com").get();
         assertThat(user.getFirstName()).isEqualTo("FIRST_NAME");
         assertThat(user.getLastName()).isEqualTo("LAST_NAME");
@@ -188,7 +188,7 @@ public class SocialServiceIntTest {
         // Exercise
         socialService.createSocialUser(connection, "fr");
 
-        //Verify
+        // Verify
         User user = userRepository.findOneByEmail("mail@mail.com").get();
         assertThat(user.getActivated()).isEqualTo(true);
         assertThat(user.getPassword()).isNotEmpty();
@@ -212,7 +212,7 @@ public class SocialServiceIntTest {
         // Exercise
         socialService.createSocialUser(connection, "fr");
 
-        //Verify
+        // Verify
         final User user = userRepository.findOneByEmail("mail@mail.com").get();
         assertThat(user.getLangKey()).isEqualTo("fr");
 
@@ -233,7 +233,7 @@ public class SocialServiceIntTest {
         // Exercise
         socialService.createSocialUser(connection, "fr");
 
-        //Verify
+        // Verify
         User user = userRepository.findOneByEmail("mail@mail.com").get();
         assertThat(user.getLogin()).isEqualTo("mail@mail.com");
 
@@ -254,7 +254,7 @@ public class SocialServiceIntTest {
         // Exercise
         socialService.createSocialUser(connection, "fr");
 
-        //Verify
+        // Verify
         User user = userRepository.findOneByEmail("mail@mail.com").get();
         assertThat(user.getLogin()).isEqualToIgnoringCase("@LOGIN");
 
@@ -275,7 +275,7 @@ public class SocialServiceIntTest {
         // Exercise
         socialService.createSocialUser(connection, "fr");
 
-        //Verify
+        // Verify
         verify(mockConnectionRepository, times(1)).addConnection(connection);
 
         // Teardown
@@ -302,7 +302,7 @@ public class SocialServiceIntTest {
         // Exercise
         socialService.createSocialUser(connection, "fr");
 
-        //Verify
+        // Verify
         assertThat(userRepository.count()).isEqualTo(initialUserCount);
 
         // Teardown
@@ -328,7 +328,7 @@ public class SocialServiceIntTest {
         // Exercise
         socialService.createSocialUser(connection, "fr");
 
-        //Verify
+        // Verify
         User userToVerify = userRepository.findOneByEmail("mail@mail.com").get();
         assertThat(userToVerify.getLogin()).isEqualTo("@other_login");
         assertThat(userToVerify.getFirstName()).isEqualTo("OTHER_FIRST_NAME");
@@ -351,7 +351,7 @@ public class SocialServiceIntTest {
         // Exercise
         socialService.createSocialUser(connection, "fr");
 
-        //Verify
+        // Verify
         verify(mockMailService, times(1)).sendSocialRegistrationValidationEmail(anyObject(), anyString());
 
         // Teardown
