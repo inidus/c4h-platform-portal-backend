@@ -148,7 +148,7 @@ public class AccountResourceIntTest {
             "Shmoe",                // lastName
             "joe@example.com",      // e-mail
             true,                   // activated
-            "http://placehold.it/50x50", //imageUrl
+            "http://placehold.it/50x50", // imageUrl
             "en",                   // langKey
             null,                   // createdBy
             null,                   // createdDate
@@ -177,7 +177,7 @@ public class AccountResourceIntTest {
             "One",                  // lastName
             "funky@example.com",    // e-mail
             true,                   // activated
-            "http://placehold.it/50x50", //imageUrl
+            "http://placehold.it/50x50", // imageUrl
             "en",                   // langKey
             null,                   // createdBy
             null,                   // createdDate
@@ -206,7 +206,7 @@ public class AccountResourceIntTest {
             "Green",            // lastName
             "invalid",          // e-mail <-- invalid
             true,               // activated
-            "http://placehold.it/50x50", //imageUrl
+            "http://placehold.it/50x50", // imageUrl
             "en",                   // langKey
             null,                   // createdBy
             null,                   // createdDate
@@ -235,7 +235,7 @@ public class AccountResourceIntTest {
             "Green",            // lastName
             "bob@example.com",  // e-mail
             true,               // activated
-            "http://placehold.it/50x50", //imageUrl
+            "http://placehold.it/50x50", // imageUrl
             "en",                   // langKey
             null,                   // createdBy
             null,                   // createdDate
@@ -265,7 +265,7 @@ public class AccountResourceIntTest {
             "Something",            // lastName
             "alice@example.com",    // e-mail
             true,                   // activated
-            "http://placehold.it/50x50", //imageUrl
+            "http://placehold.it/50x50", // imageUrl
             "en",                   // langKey
             null,                   // createdBy
             null,                   // createdDate
@@ -307,7 +307,7 @@ public class AccountResourceIntTest {
             "Doe",                  // lastName
             "john@example.com",     // e-mail
             true,                   // activated
-            "http://placehold.it/50x50", //imageUrl
+            "http://placehold.it/50x50", // imageUrl
             "en",                   // langKey
             null,                   // createdBy
             null,                   // createdDate
@@ -348,7 +348,7 @@ public class AccountResourceIntTest {
             "Guy",                  // lastName
             "badguy@example.com",   // e-mail
             true,                   // activated
-            "http://placehold.it/50x50", //imageUrl
+            "http://placehold.it/50x50", // imageUrl
             "en",                   // langKey
             null,                   // createdBy
             null,                   // createdDate
@@ -378,7 +378,7 @@ public class AccountResourceIntTest {
             "One",                  // lastName
             "funky@example.com",    // e-mail
             true,                   // activated
-            "http://placehold.it/50x50", //imageUrl
+            "http://placehold.it/50x50", // imageUrl
             "en",                   // langKey
             null,                   // createdBy
             null,                   // createdDate

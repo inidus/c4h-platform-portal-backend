@@ -23,7 +23,7 @@ export class OperinoComponentPopupService {
 
         if (!createNew) {
             this.operinoComponentService.find(id).subscribe(operinoComponent => {
-                if(!operinoComponent.operino) {
+                if (!operinoComponent.operino) {
                     operinoComponent.operino = new Operino();
                 }
                 operinoComponent.operino.id = operinoId;

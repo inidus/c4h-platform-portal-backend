@@ -41,13 +41,13 @@ export class OperinoComponentDeleteDialogComponent {
             this.activeModal.dismiss(true);
         });
 
-        //this.operinoComponentService.delete(id, this.operinoComponent.operino.id).subscribe(response => {
-        //    this.eventManager.broadcast({
-        //        name: 'operinoComponentListModification',
-        //        content: 'Deleted an operinoComponent'
-        //    });
-        //    this.activeModal.dismiss(true);
-        //});
+        // this.operinoComponentService.delete(id, this.operinoComponent.operino.id).subscribe(response => {
+        //     this.eventManager.broadcast({
+        //         name: 'operinoComponentListModification',
+        //         content: 'Deleted an operinoComponent'
+        //     });
+        //     this.activeModal.dismiss(true);
+        // });
     }
 }
 
