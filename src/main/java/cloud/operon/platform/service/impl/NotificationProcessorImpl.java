@@ -115,7 +115,7 @@ public class NotificationProcessorImpl {
             log.error("Error generating pdf from rest call. Nested exception is : ", e);
         }
 
-        //save notification
+        // save notification
 //        notificationRepository.save(notification);
     }
 

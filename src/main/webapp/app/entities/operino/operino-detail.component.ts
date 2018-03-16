@@ -77,7 +77,7 @@ export class OperinoDetailComponent implements OnInit, OnDestroy {
     }
 
     private onSaveSuccess (result: Operino) {
-          //this.eventManager.broadcast({ name: 'operinoListModification', content: 'OK'});
+          // this.eventManager.broadcast({ name: 'operinoListModification', content: 'OK'});
         this.operino = result;
         // assign operino to components
         this.assignOperinoToComponents();

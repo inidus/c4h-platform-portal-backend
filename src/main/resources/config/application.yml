@@ -99,8 +99,8 @@ jhipster:
         from: operoncloudplatform@localhost
     swagger:
         default-include-pattern: /api/.*
-        title: Operon Cloud Platform API
-        description: Operon Cloud Platform API documentation
+        title: Inidus Platform API
+        description: Inidus Platform API documentation
         version: 0.0.1
         terms-of-service-url:
         contact-name:

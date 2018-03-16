@@ -67,7 +67,7 @@ export class OperinoComponentListComponent implements OnInit, OnDestroy {
             return;
         }
         // if operino has been passed, then do not need to load components from server
-        if(! this.operino.components) {
+        if (! this.operino.components) {
             this.operinoComponentService.componentsForOperino(this.operino.id, {
                 page: this.page,
                 size: this.itemsPerPage,
@@ -77,7 +77,7 @@ export class OperinoComponentListComponent implements OnInit, OnDestroy {
                 (res: Response) => this.onError(res.json())
             );
         } else {
-            this.operinoComponents = this.operino.components;   
+            this.operinoComponents = this.operino.components;
         }
     }
 
