@@ -65,7 +65,7 @@ public class NotificationProcessorImpl {
             String pass = config.get(OperinoService.PASSWORD);
 
             String base64Creds = ThinkEhrRestClient.createBasicAuthString(user, pass);
-            headers.add("Authorization", "Basic " + base64Creds);
+            headers.add("Authorization", base64Creds);
         }
 
         HttpEntity<Map<String, String>> getRequst = new HttpEntity<>(headers);

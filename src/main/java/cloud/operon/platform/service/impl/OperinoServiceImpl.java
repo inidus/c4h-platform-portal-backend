@@ -194,7 +194,6 @@ public class OperinoServiceImpl implements OperinoService {
         data.put(OPERINO_NAME, operino.getName());
         data.put(USERNAME, user);
         data.put(PASSWORD, pass);
-        data.put(TOKEN, ThinkEhrRestClient.createBasicAuthString(user, pass));
         data.put(BASE_URL, this.thinkEhrRestClient.getBaseUrl());
 
         return data;
@@ -206,7 +205,7 @@ public class OperinoServiceImpl implements OperinoService {
         notification.setStatus(NotificationStatus.INPROGRESS);
 //        notification = notificationRepository.save(notification);
         rabbitTemplate.convertAndSend("notifications", notification);
-        log.info("Notification sent to rabbitmq");
+        log.debug("Notification sent to rabbitmq");
 
         return notification;
     }

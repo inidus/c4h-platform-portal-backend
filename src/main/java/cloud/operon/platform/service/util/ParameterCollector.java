@@ -4,39 +4,33 @@ import cloud.operon.platform.service.OperinoService;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ParameterCollector {
+    private final ThinkEhrRestClient thinkEhrRestClient;
     private final Map<String, String> config;
-    private final HttpEntity httpEntity;
     private JSONObject postmanConfig;
 
-    public ParameterCollector(Map<String, String> config, HttpEntity httpEntity) {
+    public ParameterCollector(ThinkEhrRestClient thinkEhrRestClient, Map<String, String> config) {
+        this.thinkEhrRestClient = thinkEhrRestClient;
         this.config = config;
-        this.httpEntity = httpEntity;
     }
 
-    public String getWorkspaceMarkdown() throws UnsupportedEncodingException, JSONException {
+    public String getWorkspaceMarkdown() throws JSONException {
         return createWorkspaceMarkdown(getPostmanConfig());
     }
 
-    public JSONObject getPostmanConfig() throws UnsupportedEncodingException, JSONException {
+    public JSONObject getPostmanConfig() throws JSONException {
         if (null == this.postmanConfig) {
             this.postmanConfig = createPostmanConfig();
         }
         return this.postmanConfig;
     }
 
-
-    private JSONObject createPostmanConfig() throws JSONException, UnsupportedEncodingException {
+    private JSONObject createPostmanConfig() throws JSONException {
         JSONObject json = new JSONObject();
         json.put("id", config.get(OperinoService.DOMAIN));
         json.put("name", config.get(OperinoService.OPERINO_NAME));
@@ -45,45 +39,99 @@ public class ParameterCollector {
         return json;
     }
 
-    private String createWorkspaceMarkdown(JSONObject postmanConfig) throws JSONException, UnsupportedEncodingException {
+    private JSONArray createPostmanValues() throws JSONException {
+        String ehrId = thinkEhrRestClient.queryEhrId();
+        String user = config.get(OperinoService.USERNAME);
+        String pass = config.get(OperinoService.PASSWORD);
+
+        return new JSONArray()
+            .put(createMapEntry("openEhrApi", getOpenEhrApiAddress()))
+            .put(createMapEntry("CDRName", getCdrName()))
+            .put(createMapEntry("domainSuffix", getDomainSuffix()))
+            .put(createMapEntry("domainName", config.get(OperinoService.DOMAIN)))
+            .put(createMapEntry("SessionHeader", getSessionHeader()))
+            .put(createMapEntry("Username", user))
+            .put(createMapEntry("Password", pass))
+            .put(createMapEntry("Authorization", ThinkEhrRestClient.createBasicAuthString(user, pass)))
+            .put(createMapEntry("accountName", config.get(OperinoService.OPERINO_NAME)))
+            .put(createMapEntry("domainSystemId", getDomainSystemId()))
+            .put(createMapEntry("committerName", getCommitterName()))
+            .put(createMapEntry("patientName", "Ivor Cox"))
+            .put(createMapEntry("subjectId", "9999999000"))
+            .put(createMapEntry("nhsNumber", "9999999000"))
+            .put(createMapEntry("subjectNamespace", "uk.nhs.nhs_number"))
+            .put(createMapEntry("ehrId", ehrId))
+            .put(createMapEntry("partyId", thinkEhrRestClient.queryPartyId("ivor", "cox")))
+            .put(createMapEntry("templateId", "Vital Signs Encounter (Composition)"))
+            .put(createMapEntry("compositionId", thinkEhrRestClient.queryCompositionId(ehrId)));
+    }
+
+    private String createWorkspaceMarkdown(JSONObject postmanConfig) throws JSONException {
         JSONArray values = postmanConfig.getJSONArray("values");
 
-        return "# Ehrscape Domain provisioning\n"
-            .concat("\n")
-            .concat("## Domain login details\n")
-            .concat("\n")
-            .concat("openEhrApi:").concat(findValue(values, "openEhrApi")).concat("\n")
-            .concat("domainName:").concat(findValue(values, "domainName")).concat("\n")
-            .concat("domainSuffix:").concat(findValue(values, "domainSuffix")).concat("\n")
-            .concat("CDRName:").concat(findValue(values, "CDRName")).concat("\n")
-            .concat("SessionHeader:").concat(findValue(values, "SessionHeader")).concat("\n")
-            .concat("Username:").concat(findValue(values, "Username")).concat("\n")
-            .concat("Password:").concat(findValue(values, "Password")).concat("\n")
-            .concat("Authorization:").concat(findValue(values, "Authorization")).concat("\n")
-            .concat("accountName:").concat(findValue(values, "accountName")).concat("\n")
-            .concat("domainSystemId:").concat(findValue(values, "domainSystemId")).concat("\n")
-            .concat("\n")
-            .concat("### Dummy patient\n")
-            .concat("\n")
-            .concat("committerName:").concat(findValue(values, "committerName")).concat("\n")
-            .concat("patientName:").concat(findValue(values, "patientName")).concat("\n")
-            .concat("subjectId:").concat(findValue(values, "subjectId")).concat("\n")
-            .concat("nhsNumber:").concat(findValue(values, "nhsNumber")).concat("\n")
-            .concat("subjectNamespace:").concat(findValue(values, "subjectNamespace")).concat("\n")
-            .concat("ehrId:").concat(findValue(values, "ehrId")).concat("\n")
-            .concat("partyId:").concat(findValue(values, "partyId")).concat("\n")
-            .concat("\n")
-            .concat("### Sample instance data for dummy patient\n")
-            .concat("\n")
-            .concat("templateId:").concat(findValue(values, "templateId")).concat("\n")
-            .concat("compositionId:").concat(findValue(values, "compositionId")).concat("\n")
-            .concat("\n")
-            .concat("###Useful links\n")
-            .concat("\n")
-            .concat("[Ehrscape Explorer](https://test.operon.systems/explorer)\n")
-            .concat("[Ehrscape API Explorer](https://test.operon.systems/api-explorer)\n")
-            .concat("[Ehrscape API Reference](https://dev.ehrscape.com/documentation.html)\n")
-            .concat("[Ehrscape - using Postman](https://github.com/inidus/postman-ehrscape)\n");
+        return ("# " + getMarkdownHeading() + "\n"
+            + "\n"
+            + "## Domain login details\n"
+            + "\n"
+            + "openEhrApi:" + findValue(values, "openEhrApi") + "\n"
+            + "domainName:" + findValue(values, "domainName") + "\n"
+            + "domainSuffix:" + findValue(values, "domainSuffix") + "\n"
+            + "CDRName:" + findValue(values, "CDRName") + "\n"
+            + "SessionHeader:" + findValue(values, "SessionHeader") + "\n"
+            + "Username:" + findValue(values, "Username") + "\n"
+            + "Password:" + findValue(values, "Password") + "\n"
+            + "Authorization:" + findValue(values, "Authorization") + "\n"
+            + "accountName:" + findValue(values, "accountName") + "\n"
+            + "domainSystemId:" + findValue(values, "domainSystemId") + "\n"
+            + "\n"
+            + "### Dummy patient\n"
+            + "\n"
+            + "committerName:" + findValue(values, "committerName") + "\n"
+            + "patientName:" + findValue(values, "patientName") + "\n"
+            + "subjectId:" + findValue(values, "subjectId") + "\n"
+            + "nhsNumber:" + findValue(values, "nhsNumber") + "\n"
+            + "subjectNamespace:" + findValue(values, "subjectNamespace") + "\n"
+            + "ehrId:" + findValue(values, "ehrId") + "\n"
+            + "partyId:" + findValue(values, "partyId") + "\n"
+            + "\n"
+            + "### Sample instance data for dummy patient\n"
+            + "\n"
+            + "templateId:" + findValue(values, "templateId") + "\n"
+            + "compositionId:" + findValue(values, "compositionId") + "\n"
+            + "\n"
+            + "### Useful links\n"
+            + "\n"
+            + getMarkdownFooter());
+    }
+
+    private String getMarkdownHeading() {
+        if (isCode4Health()) {
+            return "Code4Health Project Provisioning";
+        } else {
+            return "inidus Cloud Project Provisioning";
+        }
+    }
+
+    private String getMarkdownFooter() {
+        if (isCode4Health()) {
+            return "[CDR Explorer](https://cdr.code4health.org/explorer)\n"
+                + "[CDR API Explorer](https://cdr.code4health.org/api-explorer)\n"
+                + "[CDR API Reference](https://dev.ehrscape.com/documentation.html)\n"
+                + "[Ehrscape - using Postman](https://docs.code4health.org/ES0-overview-openehr-ehrscape.html)";
+        } else {
+            return "[CDR Explorer](https://cdr.inidus.cloud/explorer)\n" +
+                "[CDR API Explorer]( https://cdr.inidus.cloud/api-explorer)\n" +
+                "[CDR API Reference](https://dev.ehrscape.com/documentation.html)\n" +
+                "[Ehrscape - using Postman](https://docs.code4health.org/ES0-overview-openehr-ehrscape.html)";
+        }
+    }
+
+    private String getDomainSuffix() {
+        return isCode4Health() ? "code4health.org" : "inidus.cloud";
+    }
+
+    private boolean isCode4Health() {
+        return true;
     }
 
     private String findValue(JSONArray array, String key) throws JSONException {
@@ -96,37 +144,9 @@ public class ParameterCollector {
         return "";
     }
 
-
-    private JSONArray createPostmanValues() throws JSONException, UnsupportedEncodingException {
-        JSONArray values = new JSONArray();
-
-        values.put(createMapEntry("openEhrApi", getOpenEhrApiAddress()));
-        values.put(createMapEntry("CDRName", getCdrName()));
-        values.put(createMapEntry("domainSuffix", getDomainSuffix()));
-        values.put(createMapEntry("domainName", config.get(OperinoService.DOMAIN)));
-        values.put(createMapEntry("SessionHeader", getSessionHeader()));
-        values.put(createMapEntry("Username", config.get(OperinoService.USERNAME)));
-        values.put(createMapEntry("Password", config.get(OperinoService.PASSWORD)));
-        values.put(createMapEntry("Authorization", config.get(OperinoService.TOKEN)));
-        values.put(createMapEntry("accountName", config.get(OperinoService.OPERINO_NAME)));
-        values.put(createMapEntry("domainSystemId", getDomainSystemId()));
-        values.put(createMapEntry("committerName", getCommitterName()));
-        values.put(createMapEntry("patientName", "Ivor Cox"));
-        values.put(createMapEntry("subjectId", "9999999000"));
-        values.put(createMapEntry("nhsNumber", "9999999000"));
-        values.put(createMapEntry("subjectNamespace", "uk.nhs.nhs_number"));
-        String ehrId = queryEhrId();
-        values.put(createMapEntry("ehrId", ehrId));
-        values.put(createMapEntry("partyId", queryPartyId("ivor", "cox")));
-        values.put(createMapEntry("templateId", "Vital Signs Encounter (Composition)"));
-        values.put(createMapEntry("compositionId", queryCompositionId(ehrId)));
-
-        return values;
-    }
-
     private String getCommitterName() {
         // defaults to 'Dr ' + Account name
-        return "Dr " + config.get(OperinoService.OPERINO_NAME);
+        return "Dr " + config.get(OperinoService.USER_DISPLAY_NAME_OR_DOMAIN);
     }
 
     private String getDomainSystemId() {
@@ -148,47 +168,19 @@ public class ParameterCollector {
     }
 
     private String getSessionHeader() {
-        return isEhrScape() ? "Ehr-Session" : "Ehr-Session-disabled";
-    }
-
-    private String getDomainSuffix() {
-        return isEhrScape() ? "c4h.ehrscape.com" : "something else";
+        return isEhrScape() ? "Ehr-Session-disabled" : "Ehr-Session";
     }
 
     private boolean isEhrScape() {
         return true;
     }
 
-    private String queryEhrId() throws JSONException {
-        String url = config.get(OperinoService.BASE_URL) + "ehr/?subjectId=9999999000&subjectNamespace=uk.nhs.nhs_number";
-        ResponseEntity<String> result = new RestTemplate().exchange(url, HttpMethod.GET, httpEntity, String.class);
-        return new JSONObject(result.getBody()).getString("ehrId");
-    }
-
-    private String queryPartyId(String firstName, String lastName) throws JSONException {
-        String url = config.get(OperinoService.BASE_URL) + "demographics/party/query/?lastNames=*" + lastName + "*&firstNames=*" + firstName + "*";
-        ResponseEntity<String> result = new RestTemplate().exchange(url, HttpMethod.GET, httpEntity, String.class);
-        return new JSONObject(result.getBody()).getJSONArray("parties").getJSONObject(0).getString("id");
-    }
-
-    private String queryCompositionId(String ehrId) throws JSONException, UnsupportedEncodingException {
-        String url = config.get(OperinoService.BASE_URL) + "query";
-
-        String aql = "select c/context/start_time/value as start_time, c/name/value as name, c/uid/value as uid from EHR e [ehr_id/value='" + ehrId + "'] contains COMPOSITION c";
-        String aqlRequest = "{\"aql\" : \"" + aql + "\"}";
-
-        HttpEntity<String> postEntity = new HttpEntity<>(aqlRequest, httpEntity.getHeaders());
-        ResponseEntity<String> result = new RestTemplate().exchange(url, HttpMethod.POST, postEntity, String.class);
-
-        return new JSONObject(result.getBody()).getJSONArray("resultSet").getJSONObject(0).getString("uid");
-    }
-
     private JSONObject createMapEntry(String key, String value) throws JSONException {
         JSONObject map = new JSONObject();
-        map.put("enabled", true);
         map.put("key", key);
         map.put("value", value);
         map.put("type", "text");
+        map.put("enabled", true);
         return map;
     }
 }

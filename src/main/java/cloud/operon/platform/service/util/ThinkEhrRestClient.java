@@ -1,12 +1,14 @@
 package cloud.operon.platform.service.util;
 
 import cloud.operon.platform.domain.Patient;
+import cloud.operon.platform.domain.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.binary.Base64;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -31,20 +35,19 @@ import java.util.*;
 public class ThinkEhrRestClient {
 
     private final Logger log = LoggerFactory.getLogger(ThinkEhrRestClient.class);
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
     String adminName;
     String password;
+    String cdrUrl;
     String baseUrl;
     String managerUrl;
-    @Autowired
-    RestTemplate restTemplate;
-    @Autowired
-    ObjectMapper objectMapper;
 
-    public static String createBasicAuthString(String adminName, String password) {
-        String plainCreds = adminName + ":" + password;
+    public static String createBasicAuthString(String username, String password) {
+        String plainCreds = username + ":" + password;
         byte[] plainCredsBytes = plainCreds.getBytes();
         byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes);
-        return new String(base64CredsBytes);
+        return "Basic " + new String(base64CredsBytes);
     }
 
     ResponseEntity<Map> doPost(String url, HttpHeaders httpHeaders, Object body) throws JsonProcessingException, RestClientException {
@@ -56,6 +59,49 @@ public class ThinkEhrRestClient {
         log.debug("responseEntity = {}", responseEntity);
 
         return responseEntity;
+    }
+
+    String queryEhrId() throws JSONException {
+        String url = baseUrl + "ehr/?subjectId=9999999000&subjectNamespace=uk.nhs.nhs_number";
+        HttpEntity<Object> request = new HttpEntity<>(getAdminHeaders());
+        ResponseEntity<String> result = new RestTemplate().exchange(url, HttpMethod.GET, request, String.class);
+        if (result.getStatusCode() == HttpStatus.OK) {
+            return new JSONObject(result.getBody()).getString("ehrId");
+        } else {
+            log.warn("Could not retrieve EHR ID");
+            return "n/a";
+        }
+    }
+
+    String queryPartyId(String firstName, String lastName) throws JSONException {
+        String url = baseUrl + "demographics/party/query/?lastNames=*" + lastName + "*&firstNames=*" + firstName + "*";
+        HttpEntity<Object> request = new HttpEntity<>(getAdminHeaders());
+        ResponseEntity<String> result = new RestTemplate().exchange(url, HttpMethod.GET, request, String.class);
+        if (result.getStatusCode() == HttpStatus.OK) {
+            return new JSONObject(result.getBody()).getJSONArray("parties").getJSONObject(0).getString("id");
+        } else {
+            log.warn("Could not retrieve party ID");
+            return "n/a";
+        }
+    }
+
+    String queryCompositionId(String ehrId) throws JSONException {
+        String url = baseUrl + "query";
+
+        String aql = "select c/context/start_time/value as start_time,"
+            + " c/name/value as name,"
+            + " c/uid/value as uid from EHR e [ehr_id/value='" + ehrId + "'] contains COMPOSITION c";
+        String aqlRequest = "{\"aql\" : \"" + aql + "\"}";
+
+        HttpEntity<String> postEntity = new HttpEntity<>(aqlRequest, getAdminHeaders());
+        ResponseEntity<String> result = new RestTemplate().exchange(url, HttpMethod.POST, postEntity, String.class);
+
+        if (result.getStatusCode() == HttpStatus.OK) {
+            return new JSONObject(result.getBody()).getJSONArray("resultSet").getJSONObject(0).getString("uid");
+        } else {
+            log.warn("Could not retrieve composition ID");
+            return "n/a";
+        }
     }
 
     public ResponseEntity truncateDomain(String domainSystemId) {
@@ -88,12 +134,12 @@ public class ThinkEhrRestClient {
         }
     }
 
-    public String createEhr(Patient patient, HttpHeaders httpHeaders, String subjectNamespace, String subjectId, String commiterName) {
+    public String createEhr(Patient patient, HttpHeaders httpHeaders, String subjectNamespace, String subjectId, String committerName) {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl + "ehr")
             .queryParam("subjectNamespace", subjectNamespace)
             .queryParam("subjectId", subjectId)
-            .queryParam("commiterName", commiterName);
+            .queryParam("committerName", committerName);
 
         // create patient and then update it - doing a single post to create wont set all additional details
         HttpEntity<Object> request = new HttpEntity<>(httpHeaders);
@@ -173,6 +219,7 @@ public class ThinkEhrRestClient {
     }
 
     public void uploadTemplate(HttpHeaders httpHeaders, String templatePath) {
+        httpHeaders.setContentType(MediaType.APPLICATION_XML);
 
         String templateToSubmit = null;
         try (InputStream inputStream = ThinkEhrRestClient.class.getClassLoader().getResourceAsStream(templatePath)) {
@@ -199,11 +246,40 @@ public class ThinkEhrRestClient {
         }
     }
 
+
+    public ResponseEntity<String> createDomain(String domainName, String projectName) throws URISyntaxException {
+        URI uri = new URI(cdrUrl + "/admin/rest/v1/domains");
+        String requestJson = "{" +
+            "\"blocked\": \"false\"," +
+            "\"description\": \"" + projectName + "\"," +
+            "\"name\": \"" + domainName + "\"," +
+            "\"systemId\": \"" + domainName + "\"" +
+            "}";
+        HttpEntity<Object> request = new HttpEntity<>(requestJson, getAdminHeaders());
+        log.debug("createDomain" + requestJson);
+        return restTemplate.exchange(uri, HttpMethod.POST, request, String.class);
+    }
+
+    public ResponseEntity<String> createUser(String domainName, User domainUser, String domainPassword) throws URISyntaxException {
+        URI uri = new URI(cdrUrl + "/admin/rest/v1/users");
+
+        String requestJson = "{" +
+            "\"username\": \"" + domainName + "\"," +
+            "\"password\": \"" + domainPassword + "\"," +
+            "\"name\": \"" + domainUser.getLogin() + "\"," +
+            "\"externalRef\": null," +
+            "\"blocked\": false," +
+            "\"defaultDomain\": \"" + domainName + "\"," +
+            "\"roles\": {\"" + domainName + "\": [\"ROLE_ADMIN\"]}," +
+            "\"superUser\": false" +
+            "}";
+        HttpEntity<Object> request = new HttpEntity<>(requestJson, getAdminHeaders());
+
+        return restTemplate.exchange(uri, HttpMethod.POST, request, String.class);
+    }
+
     /**
      * Utility method for wrapping {@link Patient} object in the format that ThinkEhr expects
-     *
-     * @param patient
-     * @return
      */
     private Map<String, Object> transformPatient(Patient patient) {
         Map<String, Object> map = new HashMap<>();
@@ -242,7 +318,7 @@ public class ThinkEhrRestClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         String base64Creds = createBasicAuthString(this.adminName, this.password);
-        headers.add("Authorization", "Basic " + base64Creds);
+        headers.add("Authorization", base64Creds);
 
         return headers;
     }
@@ -265,5 +341,9 @@ public class ThinkEhrRestClient {
 
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
+    }
+
+    public void setCdrUrl(String cdrUrl) {
+        this.cdrUrl = cdrUrl;
     }
 }

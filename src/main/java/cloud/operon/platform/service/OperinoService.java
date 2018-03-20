@@ -12,10 +12,8 @@ import java.util.Map;
  * Service Interface for managing Operino.
  */
 public interface OperinoService {
-    String TOKEN = "token";
     String DOMAIN = "domainName";
     String OPERINO_NAME = "operinoName";
-    String OPEN_EHR_API = "openEhrApi";
     String USERNAME = "username";
     String PASSWORD = "password";
 

@@ -150,18 +150,15 @@ application:
 
 # Provisioner settings
 provisioner:
-    domainUrl: https://explorer.code4health.org/ehrscape-manager/rest/domain/
-    cdrUrl: https://cdr.code4health.org/rest/v1/
+    agentName: inidus_provisioner
     subjectNamespace: uk.nhs.nhs_number
-    agentName: operon_provisioner
-    username:
-    password:
 # Notifier settings
 notifier:
     openEhrUrl: https://cdr.code4health.org/rest/v1/composition/
     teamName: Code4Health team
     skipCompositionIdValidation: true
 thinkehr:
+    cdrUrl: https://cdr.code4health.org/rest/v1/
     baseUrl: https://cdr.code4health.org/rest/v1/
     managerUrl: https://explorer.code4health.org/ehrscape-manager/rest/
     adminName:

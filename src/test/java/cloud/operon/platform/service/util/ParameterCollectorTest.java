@@ -22,28 +22,29 @@ public class ParameterCollectorTest {
         data.put(OperinoService.DOMAIN, "c578c3c4-5bed-4143-b3cb-2a046116e65a");
         data.put(OperinoService.DOMAIN_SYSTEM_ID, "c578c3c4-5bed-4143-b3cb-2a046116e65a");
         data.put(OperinoService.USER_DISPLAY_NAME_OR_DOMAIN, "Test User");
-        data.put(OperinoService.USERNAME, "oprn_hcbox");
-        data.put(OperinoService.PASSWORD, "XioTAJoO479");
-
-        String base64Creds = "b3Bybl90cmFpbmluZzpHaXlUQVphRTEyMQ==";
-
-        data.put(OperinoService.TOKEN, base64Creds);
-        data.put(OperinoService.BASE_URL, "https://test.operon.systems/rest/v1/");
+        data.put(OperinoService.USERNAME, "admin");
+        data.put(OperinoService.PASSWORD, "admin");
+        data.put(OperinoService.BASE_URL, "http://127.0.0.1:8080/rest/v1/");
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Basic " + base64Creds);
+        String basicAuthString = ThinkEhrRestClient.createBasicAuthString("admin", "admin");
+        headers.add("Authorization", basicAuthString);
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Ehr-Session-disabled", "0ce5ec82-3954-4388-bfd7-e48f6db613e8");
         HttpEntity<Map<String, String>> getRequest = new HttpEntity<>(headers);
 
-        impl = new ParameterCollector(data, getRequest);
+        ThinkEhrRestClient restClient = new ThinkEhrRestClient();
+        restClient.setAdminName("admin");
+        restClient.setPassword("admin");
+        restClient.setBaseUrl("http://127.0.0.1:8080/rest/v1/");
+        impl = new ParameterCollector(restClient, data);
     }
 
 
     @Test
     public void createPostmanConfig() throws Exception {
         JSONObject postmanConfig = impl.getPostmanConfig();
-        System.out.println(postmanConfig.toString());
+        System.out.println(postmanConfig.toString(2));
     }
 
     @Test

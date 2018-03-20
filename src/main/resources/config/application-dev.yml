@@ -58,17 +58,24 @@ spring:
                 path:
                   logs: target/elasticsearch/log
                   data: target/elasticsearch/data
+#    mail:
+#        host: mail.authsmtp.com
+#        port: 2525
+#        username:
+#        password:
+#        protocol: smtp
+#        tls: true
+#        properties.mail.smtp:
+#            auth: true
+#            starttls.enable: false
+#            ssl.trust: smtp.authsmtp.com
     mail:
-        host: mail.authsmtp.com
-        port: 2525
-        username:
-        password:
+        host: localhost
+        port: 1025
+        username: admin
+        password: admin
         protocol: smtp
-        tls: true
-        properties.mail.smtp:
-            auth: true
-            starttls.enable: false
-            ssl.trust: smtp.authsmtp.com
+        tls: false
     messages:
         cache-seconds: 1
     thymeleaf:
@@ -151,48 +158,24 @@ jhipster:
 
 application:
 
-
-## Provisioner settings
-#provisioner:
-#    domainUrl: https://explorer.code4health.org/ehrscape-manager/rest/domain/
-#    cdrUrl: https://cdr.code4health.org/rest/v1/
-#    explorerUrl: https://explorer.code4health.org/explorer
-#    subjectNamespace: uk.nhs.nhs_number
-#    agentName: operon_provisioner
-#    username:
-#    password:
-## Notifier settings
-#notifier:
-#    openEhrUrl: https://cdr.code4health.org/rest/v1/composition/
-#    teamName: Code4Health team
-#    skipCompositionIdValidation: true
-#thinkehr:
-#    baseUrl: https://cdr.code4health.org/rest/v1/
-#    managerUrl: https://explorer.code4health.org/ehrscape-manager/rest/
-#    adminName:
-#    password:
-
 # Provisioner settings
 provisioner:
-    domainUrl: http://127.0.0.1:8080/admin/rest/v1/domains
-    cdrUrl: http://127.0.0.1:8080
-    subjectNamespace: uk.nhs.nhs_number
     agentName: inidus_provisioner
-    username: admin
-    password: admin
+    subjectNamespace: uk.nhs.nhs_number
 # Notifier settings
 notifier:
     openEhrUrl: http://127.0.0.1:8080/rest/v1/composition/
     teamName: Code4Health team
     skipCompositionIdValidation: true
 thinkehr:
+    cdrUrl: http://127.0.0.1:8080
     baseUrl: http://127.0.0.1:8080/rest/v1/
     managerUrl: https://explorer.code4health.org/ehrscape-manager/rest/
     adminName: admin
     password: admin
 logging:
   level:
-    ROOT: INFO
+    ROOT: DEBUG
 #    org.springframework.web: INFO
 #    guru.springframework.controllers: INFO
 #    org.hibernate: INFO
