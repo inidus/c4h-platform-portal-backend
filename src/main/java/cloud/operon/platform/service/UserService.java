@@ -204,7 +204,7 @@ public class UserService {
         });
     }
 
-    @Transactional(readOnly = true)    
+    @Transactional(readOnly = true)
     public Page<UserDTO> getAllManagedUsers(Pageable pageable) {
         return userRepository.findAllByLoginNot(pageable, Constants.ANONYMOUS_USER).map(UserDTO::new);
     }
@@ -227,15 +227,15 @@ public class UserService {
     @Transactional(readOnly = true)
     public boolean isAdmin() {
         User user = this.getUserWithAuthorities();
-        boolean hasAdmin = false;
+        if (null == user) {
+            return false;
+        }
         for(Authority authority : user.getAuthorities()){
             if(authority.getName().equalsIgnoreCase(AuthoritiesConstants.ADMIN)){
-                hasAdmin =true;
-                break;
+                return true;
             }
         }
-
-        return hasAdmin;
+        return false;
     }
 
     /**

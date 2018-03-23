@@ -133,6 +133,20 @@ public class OperinoServiceImpl implements OperinoService {
         return this.verifyOwnershipAndGet(id);
     }
 
+
+    /**
+     * Get one operino by id. No authorisation check is done!
+     *
+     * @param id the id of the entity
+     * @return the entity
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Operino findOneNoAuth(Long id) {
+        log.debug("Request to get Operino : {}", id);
+        return operinoRepository.findOne(id);
+    }
+
     /**
      * Delete the  operino by id.
      *

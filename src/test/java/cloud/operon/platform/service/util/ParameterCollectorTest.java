@@ -4,12 +4,8 @@ import cloud.operon.platform.service.OperinoService;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 
 import java.util.HashMap;
-import java.util.Map;
 
 public class ParameterCollectorTest {
 
@@ -25,13 +21,6 @@ public class ParameterCollectorTest {
         data.put(OperinoService.USERNAME, "admin");
         data.put(OperinoService.PASSWORD, "admin");
         data.put(OperinoService.BASE_URL, "http://127.0.0.1:8080/rest/v1/");
-
-        HttpHeaders headers = new HttpHeaders();
-        String basicAuthString = ThinkEhrRestClient.createBasicAuthString("admin", "admin");
-        headers.add("Authorization", basicAuthString);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("Ehr-Session-disabled", "0ce5ec82-3954-4388-bfd7-e48f6db613e8");
-        HttpEntity<Map<String, String>> getRequest = new HttpEntity<>(headers);
 
         ThinkEhrRestClient restClient = new ThinkEhrRestClient();
         restClient.setAdminName("admin");

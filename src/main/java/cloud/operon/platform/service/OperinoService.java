@@ -68,6 +68,14 @@ public interface OperinoService {
     Operino findOne(Long id);
 
     /**
+     * Get one operino by id. No authorisation check is done!
+     *
+     * @param id the id of the entity
+     * @return the entity
+     */
+    public Operino findOneNoAuth(Long id);
+
+    /**
      * Delete the "id" operino.
      *
      * @param id the id of the entity
