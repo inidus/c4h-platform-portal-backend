@@ -58,17 +58,24 @@ spring:
                 path:
                   logs: target/elasticsearch/log
                   data: target/elasticsearch/data
+#    mail:
+#        host: mail.authsmtp.com
+#        port: 2525
+#        username:
+#        password:
+#        protocol: smtp
+#        tls: true
+#        properties.mail.smtp:
+#            auth: true
+#            starttls.enable: false
+#            ssl.trust: smtp.authsmtp.com
     mail:
-        host: mail.authsmtp.com
-        port: 2525
-        username:
-        password:
+        host: localhost
+        port: 1025
+        username: admin
+        password: admin
         protocol: smtp
-        tls: true
-        properties.mail.smtp:
-            auth: true
-            starttls.enable: false
-            ssl.trust: smtp.authsmtp.com
+        tls: false
     messages:
         cache-seconds: 1
     thymeleaf:
@@ -95,7 +102,7 @@ liquibase:
 #        keyAlias: operoncloudplatform
 # ===================================================================
 server:
-    port: 8080
+    port: 8081
 
 # ===================================================================
 # JHipster specific properties
@@ -151,23 +158,25 @@ jhipster:
 
 application:
 
-
 # Provisioner settings
 provisioner:
-    domainUrl: https://explorer.code4health.org/ehrscape-manager/rest/domain/
-    cdrUrl: https://cdr.code4health.org/rest/v1/
-    explorerUrl: https://explorer.code4health.org/explorer
+    agentName: inidus_provisioner
     subjectNamespace: uk.nhs.nhs_number
-    agentName: operon_provisioner
-    username:
-    password:
 # Notifier settings
 notifier:
-    openEhrUrl: https://cdr.code4health.org/rest/v1/composition/
+    openEhrUrl: http://127.0.0.1:8080/rest/v1/composition/
     teamName: Code4Health team
     skipCompositionIdValidation: true
 thinkehr:
-    baseUrl: https://cdr.code4health.org/rest/v1/
+    cdrUrl: http://127.0.0.1:8080
+    baseUrl: http://127.0.0.1:8080/rest/v1/
     managerUrl: https://explorer.code4health.org/ehrscape-manager/rest/
-    adminName:
-    password:
+    adminName: admin
+    password: admin
+logging:
+  level:
+    ROOT: DEBUG
+#    org.springframework.web: INFO
+#    guru.springframework.controllers: INFO
+#    org.hibernate: INFO
+#    cloud.operon.platform: INFO

@@ -12,6 +12,28 @@ import java.util.Map;
  * Service Interface for managing Operino.
  */
 public interface OperinoService {
+    String DOMAIN = "domainName";
+    String OPERINO_NAME = "operinoName";
+    String USERNAME = "username";
+    String PASSWORD = "password";
+
+    // holds the same value as DOMAIN
+    String DOMAIN_SYSTEM_ID = "domainSystemId";
+    String USER_DISPLAY_NAME_OR_DOMAIN = "name";
+
+    String BASE_URL = "baseUrl";
+
+    /**
+     * Static utility method to create an Operino with the given parameters
+     */
+    static Operino createOperino(String name, User user, boolean active, boolean provision) {
+        Operino operino = new Operino();
+        operino.setName(name);
+        operino.setUser(user);
+        operino.setActive(active);
+        operino.setProvision(provision);
+        return operino;
+    }
 
     /**
      * Save a operino.
@@ -54,6 +76,7 @@ public interface OperinoService {
 
     /**
      * Search for the operino corresponding to the query.
+     * <p>
      *
      * @param query    the query of the search
      * @param pageable the pagination information
@@ -71,16 +94,4 @@ public interface OperinoService {
      * Add components according to configuration
      */
     Operino addDefaultComponents(Operino operino);
-
-     /**
-     * Static utility method to create an Operino with the given parameters
-     */
-    static Operino createOperino(String name, User user, boolean active, boolean provision) {
-        Operino operino = new Operino();
-        operino.setName(name);
-        operino.setUser(user);
-        operino.setActive(active);
-        operino.setProvision(provision);
-        return operino;
-    }
 }

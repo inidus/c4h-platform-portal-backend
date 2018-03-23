@@ -6,8 +6,8 @@ import cloud.operon.platform.repository.NotificationRepository;
 import cloud.operon.platform.service.MailService;
 import cloud.operon.platform.service.OperinoService;
 import cloud.operon.platform.service.util.PdfReportGenerator;
+import cloud.operon.platform.service.util.ThinkEhrRestClient;
 import com.lowagie.text.DocumentException;
-import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.*;
@@ -31,7 +31,7 @@ import java.util.UUID;
 @Service
 @Transactional
 //@RabbitListener(queues = "notifications")
-@RabbitListener(bindings = @QueueBinding(value = @Queue(value = "notifications", durable = "true") , exchange = @Exchange(value = "exch", autoDelete = "true") , key = "key") )
+@RabbitListener(bindings = @QueueBinding(value = @Queue(value = "notifications", durable = "true"), exchange = @Exchange(value = "exch", autoDelete = "true"), key = "key"))
 @ConfigurationProperties(prefix = "notifier", ignoreUnknownFields = false)
 public class NotificationProcessorImpl {
 
@@ -51,27 +51,25 @@ public class NotificationProcessorImpl {
     @Autowired
     private MailService mailService;
 
-//    @RabbitListener(queues = "notifications")
+    //    @RabbitListener(queues = "notifications")
     @RabbitHandler
     public void receive(@Payload Notification notification) {
-        log.info("Received notification {}", notification);
+        log.debug("Received notification {}", notification);
 
-        // build call to open ehr backend
-        // set headers
         HttpHeaders headers = new HttpHeaders();
-        if (!skipCompositionIdValidation) {
-            String plainCreds = operinoService.getConfigForOperino(notification.getOperino()).get("username") +
-                    ":" + operinoService.getConfigForOperino(notification.getOperino()).get("password");
-            byte[] plainCredsBytes = plainCreds.getBytes();
-            byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes);
-            String base64Creds = new String(base64CredsBytes);
-
-            headers.add("Authorization", "Basic " + base64Creds);
-        }
         headers.setContentType(MediaType.APPLICATION_JSON);
 
+        if (!skipCompositionIdValidation) {
+            Map<String, String> config = operinoService.getConfigForOperino(notification.getOperino());
+            String user = config.get(OperinoService.USERNAME);
+            String pass = config.get(OperinoService.PASSWORD);
+
+            String base64Creds = ThinkEhrRestClient.createBasicAuthString(user, pass);
+            headers.add("Authorization", base64Creds);
+        }
+
         HttpEntity<Map<String, String>> getRequst = new HttpEntity<>(headers);
-        log.info("getRequest = " + getRequst);
+        log.debug("getRequest = " + getRequst);
         try {
             // create input stream with pdf as content
             String reportFileName = UUID.randomUUID().toString();
@@ -82,19 +80,19 @@ public class NotificationProcessorImpl {
                 log.debug("getResponse = " + getResponse);
             }
             // now process notification and send emails
-            if((getResponse != null && getResponse.getStatusCode() == HttpStatus.OK) || skipCompositionIdValidation){
+            if ((getResponse != null && getResponse.getStatusCode() == HttpStatus.OK) || skipCompositionIdValidation) {
                 // now loop though recipients and send emails to all
                 notification.getEmail().getRecipients().forEach(recipient -> {
                     mailService.sendEmailWithAttachment(recipient, notification.getEmail().getReportEmail().getSubject(),
-                            notification.getEmail().getReportEmail().getBody(),
-                            reportFileName + ".pdf", reportPath, "application/pdf", true, true);
+                        notification.getEmail().getReportEmail().getBody(),
+                        reportFileName + ".pdf", reportPath, "application/pdf", true, true);
                     log.info("Sent report to recipient = {}", recipient);
                 });
 
                 // now loop through confirmation receivers and notify all
                 notification.getEmail().getConfirmationReceivers().forEach(recipient -> {
                     mailService.sendEmail(recipient, notification.getEmail().getConfirmationEmail().getSubject(),
-                            notification.getEmail().getConfirmationEmail().getBody(), true, true);
+                        notification.getEmail().getConfirmationEmail().getBody(), true, true);
                     log.info("Sent confirmation to recipient = {}", recipient);
                 });
                 // update notification status
