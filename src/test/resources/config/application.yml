@@ -105,7 +105,7 @@ notifier:
 thinkehr:
     cdrUrl: http://127.0.0.1:8080
     baseUrl: http://127.0.0.1:8080/rest/v1/
-    managerUrl: https://test.operon.systems/explorer/
+    managerUrl: https://test.c4h.systems/explorer/
     adminName: admin
     password: admin
 

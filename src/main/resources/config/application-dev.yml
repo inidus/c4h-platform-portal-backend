@@ -179,4 +179,4 @@ logging:
 #    org.springframework.web: INFO
 #    guru.springframework.controllers: INFO
 #    org.hibernate: INFO
-#    cloud.operon.platform: INFO
+#    cloud.c4h.platform: INFO
