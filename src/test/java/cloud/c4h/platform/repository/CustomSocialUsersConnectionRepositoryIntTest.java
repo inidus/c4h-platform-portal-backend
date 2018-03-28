@@ -1,6 +1,6 @@
 package cloud.c4h.platform.repository;
 
-import cloud.c4h.platform.OperonCloudPlatformApp;
+import cloud.c4h.platform.PlatformApp;
 import cloud.c4h.platform.domain.SocialUserConnection;
 
 import org.junit.Before;
@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = OperonCloudPlatformApp.class)
+@SpringBootTest(classes = PlatformApp.class)
 @Transactional
 public class CustomSocialUsersConnectionRepositoryIntTest {
 

@@ -34,18 +34,92 @@ import java.util.List;
 @ComponentScan
 @EnableAutoConfiguration(exclude = {MetricFilterAutoConfiguration.class, MetricRepositoryAutoConfiguration.class})
 @EnableConfigurationProperties({LiquibaseProperties.class, ApplicationProperties.class})
-public class OperonCloudPlatformApp {
+public class PlatformApp {
 
-    private static final Logger log = LoggerFactory.getLogger(OperonCloudPlatformApp.class);
+    private static final Logger log = LoggerFactory.getLogger(PlatformApp.class);
 
     private final Environment env;
 
-    public OperonCloudPlatformApp(Environment env) {
+    public PlatformApp(Environment env) {
         this.env = env;
     }
 
     /**
-     * Initializes operoncloudplatform.
+     * Main method, used to run the application.
+     *
+     * @param args the command line arguments
+     * @throws UnknownHostException if the local host name could not be resolved into an address
+     */
+    public static void main(String[] args) throws UnknownHostException {
+        SpringApplication app = new SpringApplication(PlatformApp.class);
+        DefaultProfileUtil.addDefaultProfile(app);
+        ConfigurableApplicationContext ctx = app.run(args);
+        Environment env = ctx.getEnvironment();
+        String protocol = "http";
+        if (env.getProperty("server.ssl.key-store") != null) {
+            protocol = "https";
+        }
+        log.info("\n" +
+                "----------------------------------------------------------\n" +
+                "\tApplication '{}' is running! Access URLs:\n" +
+                "\tLocal: \t\t{}://localhost:{}\n" +
+                "\tExternal: \t{}://{}:{}\n" +
+                "\tProfile(s): \t{}\n" +
+                "----------------------------------------------------------",
+            env.getProperty("spring.application.name"),
+            protocol,
+            env.getProperty("server.port"),
+            protocol,
+            InetAddress.getLocalHost().getHostAddress(),
+            env.getProperty("server.port"),
+            env.getActiveProfiles());
+
+        if (Arrays.asList(env.getActiveProfiles()).contains("dev") || Arrays.asList(env.getActiveProfiles()).contains("prod")) {
+            // add sample data if none exists
+            verifyAndImportOperinos(ctx);
+        }
+    }
+
+    private static void verifyAndImportOperinos(ConfigurableApplicationContext ctx) {
+
+        OperinoRepository operinoRepository = ctx.getBean(OperinoRepository.class);
+        UserRepository userRepository = ctx.getBean(UserRepository.class);
+        List<Operino> operinos = operinoRepository.findAll();
+        log.info("operinos.size() = " + operinos.size());
+
+        if (operinos.size() == 0) {
+            log.info(String.format("*********** Creating sample operinos as [%s] were found", operinos.size()));
+
+            for (int i = 3; i < 5; i++) {
+                Operino operino = new Operino();
+                operino.setName("Operino " + i);
+                operino.setActive(true);
+                operino.setUser(userRepository.findOne(Long.valueOf(String.valueOf(i))));
+
+                for (int j = 1; j <= OperinoComponentType.values().length; j++) {
+                    OperinoComponent component = new OperinoComponent();
+                    component.setAvailability(true);
+                    if (i == 4) {
+                        component.setHosting(HostingType.NON_N3);
+                    } else {
+                        component.setHosting(HostingType.N3);
+                    }
+                    component.setType(OperinoComponentType.values()[j - 1]);
+                    component.setDiskSpace(Long.valueOf(String.valueOf(j * 1000)));
+                    component.setRecordsNumber(Long.valueOf(String.valueOf(j * 1000)));
+                    component.setTransactionsLimit(Long.valueOf(String.valueOf(j * 1000)));
+                    operino.addComponent(component);
+
+                }
+
+                // save operino
+                operinoRepository.save(operino);
+            }
+        }
+    }
+
+    /**
+     * Initializes the app.
      * <p>
      * Spring profiles can be configured with a program arguments --spring.profiles.active=your-active-profile
      * <p>
@@ -61,78 +135,6 @@ public class OperonCloudPlatformApp {
         if (activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT) && activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_CLOUD)) {
             log.error("You have misconfigured your application! It should not" +
                 "run with both the 'dev' and 'cloud' profiles at the same time.");
-        }
-    }
-
-    /**
-     * Main method, used to run the application.
-     *
-     * @param args the command line arguments
-     * @throws UnknownHostException if the local host name could not be resolved into an address
-     */
-    public static void main(String[] args) throws UnknownHostException {
-        SpringApplication app = new SpringApplication(OperonCloudPlatformApp.class);
-        DefaultProfileUtil.addDefaultProfile(app);
-        ConfigurableApplicationContext ctx= app.run(args);
-        Environment env = ctx.getEnvironment();
-        String protocol = "http";
-        if (env.getProperty("server.ssl.key-store") != null) {
-            protocol = "https";
-        }
-        log.info("\n----------------------------------------------------------\n\t" +
-                "Application '{}' is running! Access URLs:\n\t" +
-                "Local: \t\t{}://localhost:{}\n\t" +
-                "External: \t{}://{}:{}\n\t" +
-                "Profile(s): \t{}\n----------------------------------------------------------",
-            env.getProperty("spring.application.name"),
-            protocol,
-            env.getProperty("server.port"),
-            protocol,
-            InetAddress.getLocalHost().getHostAddress(),
-            env.getProperty("server.port"),
-            env.getActiveProfiles());
-
-        if(Arrays.asList(env.getActiveProfiles()).contains("dev") || Arrays.asList(env.getActiveProfiles()).contains("prod")) {
-            // add sample data if none exists
-            verifyAndImportOperinos(ctx);
-        }
-    }
-
-    private static void verifyAndImportOperinos(ConfigurableApplicationContext ctx) {
-
-        OperinoRepository operinoRepository = ctx.getBean(OperinoRepository.class);
-        UserRepository userRepository = ctx.getBean(UserRepository.class);
-        List<Operino> operinos = operinoRepository.findAll();
-        log.info("operinos.size() = " + operinos.size());
-
-        if(operinos.size() == 0){
-            log.info(String.format("*********** Creating sample operinos as [%s] were found", operinos.size()));
-
-            for(int i=3; i<5; i++){
-                Operino operino = new Operino();
-                operino.setName("Operino " + i);
-                operino.setActive(true);
-                operino.setUser(userRepository.findOne(Long.valueOf(String.valueOf(i))));
-
-                for(int j=1; j<=OperinoComponentType.values().length; j++){
-                    OperinoComponent component = new OperinoComponent();
-                    component.setAvailability(true);
-                    if (i==4) {
-                        component.setHosting(HostingType.NON_N3);
-                    }else {
-                        component.setHosting(HostingType.N3);
-                    }
-                    component.setType(OperinoComponentType.values()[j - 1]);
-                    component.setDiskSpace(Long.valueOf(String.valueOf(j * 1000)));
-                    component.setRecordsNumber(Long.valueOf(String.valueOf(j * 1000)));
-                    component.setTransactionsLimit(Long.valueOf(String.valueOf(j * 1000)));
-                    operino.addComponent(component);
-
-                }
-
-                // save operino
-                operinoRepository.save(operino);
-            }
         }
     }
 

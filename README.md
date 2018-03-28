@@ -1,4 +1,4 @@
-# Operon Cloud Platform
+# Code4Health Platform
 
 ## Development
 
@@ -45,7 +45,7 @@ Then navigate to [http://localhost:8181](http://localhost:8181) in your browser.
 
 ## Building for production
 
-To optimize the operoncloudplatform application for production, run:
+To optimize the Code4Health platform application for production, run:
 
     ./mvnw -Pprod clean package
 

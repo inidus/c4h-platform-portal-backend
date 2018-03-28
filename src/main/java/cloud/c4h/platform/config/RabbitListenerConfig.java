@@ -18,7 +18,7 @@ import org.springframework.messaging.handler.annotation.support.DefaultMessageHa
 
 @EnableRabbit
 @Configuration
-public class OperonRabbitListenerConfig implements RabbitListenerConfigurer {
+public class RabbitListenerConfig implements RabbitListenerConfigurer {
 
     @Autowired
     public ConnectionFactory connectionFactory;

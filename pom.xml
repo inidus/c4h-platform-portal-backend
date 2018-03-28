@@ -1135,14 +1135,14 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <license>Operon Health (C) 2012 - 2017</license>
-                            <distribution>Operon Health Ltd</distribution>
+                            <license>inidus (C) 2012 - 2017</license>
+                            <distribution>inidus Ltd</distribution>
                             <group>Development</group>
                             <description>${project.description}</description>
                             <version>${project.version}</version>
                             <release>${timestamp}</release>
                             <!--<icon>src/main/resources/icon.gif</icon>-->
-                            <packager>Operon Health</packager>
+                            <packager>inidus</packager>
                             <!--<prefix>/usr/local</prefix>-->
                             <!--<changelogFile>CHANGELOG.md</changelogFile>-->
                             <defineStatements>

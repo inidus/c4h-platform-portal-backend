@@ -1,6 +1,6 @@
 package cloud.c4h.platform.service;
 
-import cloud.c4h.platform.OperonCloudPlatformApp;
+import cloud.c4h.platform.PlatformApp;
 import cloud.c4h.platform.domain.Authority;
 import cloud.c4h.platform.domain.User;
 import cloud.c4h.platform.repository.AuthorityRepository;
@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = OperonCloudPlatformApp.class)
+@SpringBootTest(classes = PlatformApp.class)
 @Transactional
 public class SocialServiceIntTest {
 

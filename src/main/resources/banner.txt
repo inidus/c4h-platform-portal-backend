@@ -1,10 +1,9 @@
+${AnsiColor.BLUE}                  _        _  _    _                   _  _    _              _         _     __
+${AnsiColor.BLUE}  ___   ___    __| |  ___ | || |  | |__    ___   __ _ | || |_ | |__    _ __  | |  __ _ | |_  / _|  ___   _ __  _ __ ___
+${AnsiColor.BLUE} / __| / _ \  / _` | / _ \| || |_ | '_ \  / _ \ / _` || || __|| '_ \  | '_ \ | | / _` || __|| |_  / _ \ | '__|| '_ ` _ \
+${AnsiColor.BLUE}| (__ | (_) || (_| ||  __/|__   _|| | | ||  __/| (_| || || |_ | | | | | |_) || || (_| || |_ |  _|| (_) || |   | | | | | |
+${AnsiColor.BLUE} \___| \___/  \__,_| \___|   |_|  |_| |_| \___| \__,_||_| \__||_| |_| | .__/ |_| \__,_| \__||_|   \___/ |_|   |_| |_| |_|
+${AnsiColor.BLUE}                                                                      |_|
 
-${AnsiColor.RED}    ____                              ____  __      __  ____
-${AnsiColor.RED}   / __ \____  ___  _________  ____  / __ \/ /___ _/ /_/ __/___  _________ ___
-${AnsiColor.RED}  / / / / __ \/ _ \/ ___/ __ \/ __ \/ /_/ / / __ `/ __/ /_/ __ \/ ___/ __ `__ \
-${AnsiColor.RED} / /_/ / /_/ /  __/ /  / /_/ / / / / ____/ / /_/ / /_/ __/ /_/ / /  / / / / / /
-${AnsiColor.RED} \____/ .___/\___/_/   \____/_/ /_/_/   /_/\__,_/\__/_/  \____/_/  /_/ /_/ /_/
-${AnsiColor.RED}     /_/
-
-${AnsiColor.BRIGHT_BLUE}:: OperonPlatform 🤓  :: Running Version ${project.version} ::
-:: https://operon.cloud ::${AnsiColor.DEFAULT}
+${AnsiColor.BRIGHT_BLUE}:: Code4Health Platform 🤓  :: Running Version ${project.version} ::
+:: https://platform.code4health.org ::${AnsiColor.DEFAULT}

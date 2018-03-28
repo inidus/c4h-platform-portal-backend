@@ -1,6 +1,6 @@
 package cloud.c4h.platform.service.impl;
 
-import cloud.c4h.platform.OperonCloudPlatformApp;
+import cloud.c4h.platform.PlatformApp;
 import cloud.c4h.platform.domain.Operino;
 import cloud.c4h.platform.domain.User;
 import org.junit.After;
@@ -15,7 +15,7 @@ import java.text.DateFormat;
 import java.util.Date;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = OperonCloudPlatformApp.class)
+@SpringBootTest(classes = PlatformApp.class)
 public class OperinoProvisionerImplTest {
     @Autowired()
     OperinoProvisionerImpl impl;

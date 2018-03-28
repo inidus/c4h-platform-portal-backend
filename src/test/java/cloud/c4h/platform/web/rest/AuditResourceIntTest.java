@@ -1,6 +1,6 @@
 package cloud.c4h.platform.web.rest;
 
-import cloud.c4h.platform.OperonCloudPlatformApp;
+import cloud.c4h.platform.PlatformApp;
 import cloud.c4h.platform.config.audit.AuditEventConverter;
 import cloud.c4h.platform.domain.PersistentAuditEvent;
 import cloud.c4h.platform.repository.PersistenceAuditEventRepository;
@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = OperonCloudPlatformApp.class)
+@SpringBootTest(classes = PlatformApp.class)
 @Transactional
 public class AuditResourceIntTest {
 

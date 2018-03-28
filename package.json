@@ -1,7 +1,7 @@
 {
-  "name": "operoncloudplatform",
+  "name": "code4healthplatform",
   "version": "0.0.0",
-  "description": "Description for operoncloudplatform",
+  "description": "Description for code4healthplatform",
   "private": true,
   "cacheDirectories": [
     "node_modules"

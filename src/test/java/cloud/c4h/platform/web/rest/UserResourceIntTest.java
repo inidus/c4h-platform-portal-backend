@@ -1,6 +1,6 @@
 package cloud.c4h.platform.web.rest;
 
-import cloud.c4h.platform.OperonCloudPlatformApp;
+import cloud.c4h.platform.PlatformApp;
 import cloud.c4h.platform.domain.User;
 import cloud.c4h.platform.repository.UserRepository;
 import cloud.c4h.platform.repository.search.UserSearchRepository;
@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @see UserResource
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = OperonCloudPlatformApp.class)
+@SpringBootTest(classes = PlatformApp.class)
 public class UserResourceIntTest {
 
     @Autowired

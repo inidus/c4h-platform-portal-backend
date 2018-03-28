@@ -1,6 +1,6 @@
 package cloud.c4h.platform.service;
 
-import cloud.c4h.platform.OperonCloudPlatformApp;
+import cloud.c4h.platform.PlatformApp;
 import cloud.c4h.platform.config.Constants;
 import cloud.c4h.platform.repository.UserRepository;
 import cloud.c4h.platform.service.dto.UserDTO;
@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.*;
  * @see UserService
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = OperonCloudPlatformApp.class)
+@SpringBootTest(classes = PlatformApp.class)
 @Transactional
 public class UserServiceIntTest {
 

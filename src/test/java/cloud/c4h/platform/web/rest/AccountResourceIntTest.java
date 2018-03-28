@@ -1,6 +1,6 @@
 package cloud.c4h.platform.web.rest;
 
-import cloud.c4h.platform.OperonCloudPlatformApp;
+import cloud.c4h.platform.PlatformApp;
 import cloud.c4h.platform.domain.Authority;
 import cloud.c4h.platform.domain.User;
 import cloud.c4h.platform.repository.AuthorityRepository;
@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @see UserService
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = OperonCloudPlatformApp.class)
+@SpringBootTest(classes = PlatformApp.class)
 public class AccountResourceIntTest {
 
     @Autowired
