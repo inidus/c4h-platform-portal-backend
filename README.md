@@ -72,3 +72,6 @@ username | password
 -------- | --------
 user     | user
 admin    | admin
+
+
+&copy; 2018 Apperta Foundation UK

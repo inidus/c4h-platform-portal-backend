@@ -35,7 +35,7 @@ public class AsyncConfiguration implements AsyncConfigurer {
         executor.setCorePoolSize(jHipsterProperties.getAsync().getCorePoolSize());
         executor.setMaxPoolSize(jHipsterProperties.getAsync().getMaxPoolSize());
         executor.setQueueCapacity(jHipsterProperties.getAsync().getQueueCapacity());
-        executor.setThreadNamePrefix("operoncloudplatform-Executor-");
+        executor.setThreadNamePrefix("c4hcloudplatform-Executor-");
         return new ExceptionHandlingAsyncTaskExecutor(executor);
     }
 
