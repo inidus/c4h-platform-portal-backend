@@ -16,12 +16,12 @@
 
 spring:
     application:
-        name: operoncloudplatform
+        name: c4hcloudplatform
     jackson:
         serialization.write_dates_as_timestamps: false
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
-        url: jdbc:h2:mem:operoncloudplatform;DB_CLOSE_DELAY=-1
+        url: jdbc:h2:mem:c4hcloudplatform;DB_CLOSE_DELAY=-1
         name:
         username:
         password:
@@ -56,6 +56,11 @@ spring:
             enabled: false
     thymeleaf:
         mode: XHTML
+    rabbitmq:
+        host: localhost
+        port: 5672
+        username: guest
+        password: guest
 
 liquibase:
     contexts: test
@@ -88,6 +93,22 @@ jhipster:
     metrics: # DropWizard Metrics configuration, used by MetricsConfiguration
         jmx.enabled: true
 
+# Provisioner settings
+provisioner:
+    agentName: inidus_provisioner
+    subjectNamespace: uk.nhs.nhs_number
+# Notifier settings
+notifier:
+    openEhrUrl: https://cdr.code4health.org/rest/v1/composition/
+    teamName: Code4Health team
+    skipCompositionIdValidation: true
+thinkehr:
+    cdrUrl: http://127.0.0.1:8080
+    baseUrl: http://127.0.0.1:8080/rest/v1/
+    managerUrl: https://test.c4h.systems/explorer/
+    adminName: admin
+    password: admin
+
 # ===================================================================
 # Application specific properties
 # Add your own application properties here, see the ApplicationProperties class
@@ -98,22 +119,3 @@ jhipster:
 # ===================================================================
 
 application:
-
-provisioner:
-    domainUrl: https://test.operon.systems/ehrscape-manager/rest/domain/
-    cdrUrl: https://test.operon.systems/rest/v1/
-    explorerUrl: https://test.operon.systems/explorer/explorer
-    subjectNamespace: uk.nhs.nhs_number
-    agentName: operon_provisioner
-    username: oprn_hcbox
-    password: XioTAJoO479
-# Notifier settings
-notifier:
-    openEhrUrl: https://cdr.code4health.org/rest/v1/composition/
-    teamName: Code4Health team
-    skipCompositionIdValidation: true
-thinkehr:
-    baseUrl: https://test.operon.systems/rest/v1/
-    managerUrl: https://test.operon.systems/explorer/
-    adminName: oprn_hcbox
-    password: XioTAJoO479

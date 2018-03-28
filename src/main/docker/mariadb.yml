@@ -1,13 +1,11 @@
 version: '2'
 services:
-    operoncloudplatform-mariadb:
+    iniduscloudplatform-mariadb:
         image: mariadb:10.1.17
         # volumes:
-        #     - ~/volumes/jhipster/operoncloudplatform/mysql/:/var/lib/mysql/
-        environment:
-            - MYSQL_USER=root
-            - MYSQL_ALLOW_EMPTY_PASSWORD=yes
-            - MYSQL_DATABASE=operoncloudplatform
+        #     - ~/volumes/jhipster/iniduscloudplatform/mysql/:/var/lib/mysql/
+        env_file:
+          - iniduscloudplatform-variables.env
         ports:
             - 3306:3306
         command: mysqld --lower_case_table_names=1 --skip-ssl

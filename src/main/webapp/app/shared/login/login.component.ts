@@ -33,7 +33,7 @@ export class JhiLoginModalComponent implements OnInit, AfterViewInit {
     }
 
     ngOnInit() {
-        //this.languageService.addLocation('login', 'footer');
+        // this.languageService.addLocation('login', 'footer');
         this.jhiLanguageService.setLocations(['login', 'footer']);
     }
 
@@ -69,8 +69,8 @@ export class JhiLoginModalComponent implements OnInit, AfterViewInit {
                 content: 'Sending Authentication Success'
             });
 
-            // // previousState was set in the authExpiredInterceptor before being redirected to login modal.
-            // // since login is succesful, go to stored previousState and clear previousState
+            // previousState was set in the authExpiredInterceptor before being redirected to login modal.
+            // since login is succesful, go to stored previousState and clear previousState
             let previousState = this.stateStorageService.getPreviousState();
             if (previousState) {
                 this.stateStorageService.resetPreviousState();

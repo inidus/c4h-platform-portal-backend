@@ -9,11 +9,11 @@
         <relativePath />
     </parent>
 
-    <groupId>cloud.operon</groupId>
-    <artifactId>operonplatform</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
+    <groupId>cloud.c4h</groupId>
+    <artifactId>c4hplatform</artifactId>
+    <version>0.0.3-SNAPSHOT</version>
     <packaging>war</packaging>
-    <name>Operon Cloud Platform</name>
+    <name>Code4Health Cloud Platform</name>
 
     <prerequisites>
         <maven>${maven.version}</maven>
@@ -703,9 +703,9 @@
                     <driver />
                     <url />
                     <defaultSchemaName />
-                    <username>operoncloudplatform</username>
+                    <username>c4hcloudplatform</username>
                     <password />
-                    <referenceUrl>hibernate:spring:cloud.operon.platform.domain?dialect=&amp;hibernate.physical_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&amp;hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy</referenceUrl>
+                    <referenceUrl>hibernate:spring:cloud.c4h.platform.domain?dialect=&amp;hibernate.physical_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&amp;hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy</referenceUrl>
                     <verbose>true</verbose>
                     <logging>debug</logging>
                 </configuration>
@@ -749,7 +749,7 @@
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>${docker-maven-plugin.version}</version>
                 <configuration>
-                    <imageName>operoncloudplatform</imageName>
+                    <imageName>c4hcloudplatform</imageName>
                     <dockerDirectory>src/main/docker</dockerDirectory>
                     <resources>
                         <resource>
@@ -1135,14 +1135,14 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <license>Operon Health (C) 2012 - 2017</license>
-                            <distribution>Operon Health Ltd</distribution>
+                            <license>(C) 2018 Apperta Foundation UK</license>
+                            <distribution>Apperta Foundation UK</distribution>
                             <group>Development</group>
                             <description>${project.description}</description>
                             <version>${project.version}</version>
                             <release>${timestamp}</release>
                             <!--<icon>src/main/resources/icon.gif</icon>-->
-                            <packager>Operon Health</packager>
+                            <packager>code4health</packager>
                             <!--<prefix>/usr/local</prefix>-->
                             <!--<changelogFile>CHANGELOG.md</changelogFile>-->
                             <defineStatements>
@@ -1164,18 +1164,13 @@
                                     </sources>
                                 </mapping>
                                 <mapping>
-                                    <directory>/etc/supervisor/conf.d</directory>
-                                    <sources>
-                                        <source>
-                                            <location>${project.build.directory}/etc/${project.artifactId}-supervisor.conf</location>
-                                        </source>
-                                    </sources>
-                                </mapping>
-                                <mapping>
                                     <directory>${app.home}</directory>
                                     <sources>
                                         <source>
                                             <location>${project.build.directory}/etc/run.sh</location>
+                                        </source>
+                                        <source>
+                                            <location>${project.build.directory}/etc/${project.artifactId}.service</location>
                                         </source>
                                         <source>
                                             <location>${project.basedir}/LICENSE.txt</location>

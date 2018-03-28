@@ -1,5 +1,5 @@
 
-const enum HostingType {
+enum HostingType {
     'N3',
     ' NON_N3'
 
@@ -7,8 +7,7 @@ const enum HostingType {
 
 const enum OperinoComponentType {
     'CDR',
-    ' DEMOGRAPHICS',
-    ' TERMINOLOGY'
+    ' DEMOGRAPHICS'
 
 };
 import { Operino } from '../operino';
@@ -24,5 +23,7 @@ export class OperinoComponent {
         public computeResourceLimit?: number,
         public type?: OperinoComponentType,
         public operino?: Operino
-    ) { }
+    ) {
+        this.hosting = HostingType[' NON_N3'];
+    }
 }

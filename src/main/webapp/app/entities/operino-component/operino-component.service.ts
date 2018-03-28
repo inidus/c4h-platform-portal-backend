@@ -14,7 +14,7 @@ export class OperinoComponentService {
 
     create(operinoComponent: OperinoComponent): Observable<OperinoComponent> {
         let copy: OperinoComponent = Object.assign({}, operinoComponent);
-        if(operinoComponent.operino != null) {
+        if (operinoComponent.operino != null) {
             return this.http.post(`${this.operinoResourceUrl}/${operinoComponent.operino.id}/components`, copy).map((res: Response) => {
                 return res.json();
             });
@@ -49,8 +49,13 @@ export class OperinoComponentService {
     }
 
     delete(componentId: number, operinoId: number): Observable<Response> {
-        //return this.http.delete(`${this.resourceUrl}/${id}`);
+        // return this.http.delete(`${this.resourceUrl}/${id}`);
         return this.http.delete(`${this.operinoResourceUrl}/${operinoId}/components/${componentId}`);
+    }
+
+    deleteById(id: number): Observable<Response> {
+        return this.http.delete(`${this.resourceUrl}/${id}`);
+        // return this.http.delete(`${this.operinoResourceUrl}/${operinoId}/components/${componentId}`);
     }
 
     search(req?: any): Observable<Response> {

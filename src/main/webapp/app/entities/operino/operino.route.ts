@@ -18,7 +18,7 @@ export const operinoRoute: Routes = [
     component: OperinoComponent,
     data: {
         authorities: ['ROLE_USER'],
-        pageTitle: 'operonCloudPlatformApp.operino.home.title'
+        pageTitle: 'Operinos'
     }
   }, {
     path: 'operino/:id',
@@ -26,24 +26,24 @@ export const operinoRoute: Routes = [
     data: {
         authorities: ['ROLE_USER'],
         isEditing: false,
-        pageTitle: 'operonCloudPlatformApp.operino.home.title'
+        pageTitle: 'Operinos'
     }
   },
-    //{
-    //    path: 'operino-new',
-    //    component: OperinoPopupComponent,
-    //    data: {
-    //        authorities: ['ROLE_USER'],
-    //        pageTitle: 'operonCloudPlatformApp.operino.home.title'
-    //    }
-    //},
+    // {
+    //     path: 'operino-new',
+    //     component: OperinoPopupComponent,
+    //     data: {
+    //         authorities: ['ROLE_USER'],
+    //         pageTitle: 'Operinos'
+    //     }
+    // },
     {
         path: 'operino/:id/edit',
         component: OperinoDetailComponent,
         data: {
             authorities: ['ROLE_USER'],
             isEditing: true,
-            pageTitle: 'operonCloudPlatformApp.operino.home.title'
+            pageTitle: 'Operinos'
         }
     }
 ];
@@ -54,7 +54,7 @@ export const operinoPopupRoute: Routes = [
         component: OperinoPopupComponent,
         data: {
             authorities: ['ROLE_USER'],
-            pageTitle: 'operonCloudPlatformApp.operino.home.title'
+            pageTitle: 'Operinos'
         },
         outlet: 'popup'
     },
@@ -63,7 +63,7 @@ export const operinoPopupRoute: Routes = [
     component: OperinoDeletePopupComponent,
     data: {
         authorities: ['ROLE_USER'],
-        pageTitle: 'operonCloudPlatformApp.operino.home.title'
+        pageTitle: 'Operinos'
     },
     outlet: 'popup'
   }
