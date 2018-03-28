@@ -53,7 +53,7 @@ public class CacheConfiguration {
     public HazelcastInstance hazelcastInstance(JHipsterProperties jHipsterProperties) {
         log.debug("Configuring Hazelcast");
         Config config = new Config();
-        config.setInstanceName("operoncloudplatform");
+        config.setInstanceName("c4hcloudplatform");
         config.getNetworkConfig().setPort(5701);
         config.getNetworkConfig().setPortAutoIncrement(true);
 
