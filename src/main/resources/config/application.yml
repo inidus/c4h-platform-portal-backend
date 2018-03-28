@@ -23,7 +23,7 @@ management:
             enabled: false # When using the MailService, configure an SMTP server and set this to true
 spring:
     application:
-        name: operoncloudplatform
+        name: c4hcloudplatform
     profiles:
         # The commented value for `active` can be replaced with valid Spring profiles to load.
         # Otherwise, it will be filled in by maven when building the WAR file
@@ -96,7 +96,7 @@ jhipster:
         #allow-credentials: true
         #max-age: 1800
     mail:
-        from: operoncloudplatform@localhost
+        from: c4hcloudplatform@localhost
     swagger:
         default-include-pattern: /api/.*
         title: Inidus Platform API

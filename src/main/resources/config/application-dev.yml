@@ -31,8 +31,8 @@ spring:
         password: guest
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
-        url: jdbc:h2:mem:operoncloudplatform;DB_CLOSE_DELAY=-1
-        username: operoncloudplatform
+        url: jdbc:h2:mem:c4hcloudplatform;DB_CLOSE_DELAY=-1
+        username: c4hcloudplatform
         password:
     h2:
         console:
@@ -47,7 +47,7 @@ spring:
             hibernate.cache.use_query_cache: false
             hibernate.generate_statistics: true
             hibernate.cache.region.factory_class: com.hazelcast.hibernate.HazelcastCacheRegionFactory
-            hibernate.cache.hazelcast.instance_name: operoncloudplatform
+            hibernate.cache.hazelcast.instance_name: c4hcloudplatform
             hibernate.cache.use_minimal_puts: true
             hibernate.cache.hazelcast.use_lite_member: true
     data:
@@ -86,7 +86,7 @@ liquibase:
 
 # ===================================================================
 # To enable SSL, generate a certificate using:
-# keytool -genkey -alias operoncloudplatform -storetype PKCS12 -keyalg RSA -keysize 2048 -keystore keystore.p12 -validity 3650
+# keytool -genkey -alias c4hcloudplatform -storetype PKCS12 -keyalg RSA -keysize 2048 -keystore keystore.p12 -validity 3650
 #
 # You can also use Let's Encrypt:
 # https://maximilian-boehm.com/hp2121/Create-a-Java-Keystore-JKS-from-Let-s-Encrypt-Certificates.htm
@@ -99,7 +99,7 @@ liquibase:
 #        key-store: keystore.p12
 #        key-store-password: <your-password>
 #        keyStoreType: PKCS12
-#        keyAlias: operoncloudplatform
+#        keyAlias: c4hcloudplatform
 # ===================================================================
 server:
     port: 8081
@@ -133,7 +133,7 @@ jhipster:
             enabled: false
             host: localhost
             port: 2003
-            prefix: operoncloudplatform
+            prefix: c4hcloudplatform
         prometheus: # Use the "prometheus" Maven profile to have the Prometheus dependencies
             enabled: false
             endpoint: /prometheusMetrics
@@ -179,4 +179,4 @@ logging:
 #    org.springframework.web: INFO
 #    guru.springframework.controllers: INFO
 #    org.hibernate: INFO
-#    cloud.operon.platform: INFO
+#    cloud.c4h.platform: INFO
