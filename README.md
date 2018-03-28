@@ -1,7 +1,5 @@
 # Code4Health Platform
-
 ## Development
-
 Before you can build this project, you must install and configure the following dependencies on your machine:
 
 1. [Node.js](https://nodejs.org/en/): We use Node to run a development web server and build the project.
@@ -32,7 +30,6 @@ Add the `help` flag on any command to see how you can use it. For example, `yarn
 The `yarn run` command will list all of the scripts available to run for this project.
 
 ## Dockerisation
-
 To build the inidus cloudplatform application as a Docker image for production, run:
 
     `./mvnw clean package -Pprod -DskipTests=true docker:build`
@@ -44,7 +41,6 @@ To ensure everything worked, run:
 Then navigate to [http://localhost:8181](http://localhost:8181) in your browser.
 
 ## Building for production
-
 To optimize the Code4Health platform application for production, run:
 
     ./mvnw -Pprod clean package
@@ -57,16 +53,22 @@ To ensure everything worked, run:
 Then navigate to [http://localhost:8080](http://localhost:8080) in your browser.
 
 ## Testing
-
 Ensure `RabbitMq` is up and running first (see above). To launch your application's tests, run:
 
     ./mvnw clean test
 
 ### Client tests
-
 Unit tests are run by [Karma](https://karma-runner.github.io) and written with [Jasmine](https://jasmine.github.io/). They're located in `src/test/javascript/` and can be run with:
 
     yarn test
 
 UI end-to-end tests are powered by [Protractor](http://www.protractortest.org/#/), which is built on top of WebDriverJS. They're located in `src/test/javascript/e2e`
 and can be run by starting Spring Boot in one terminal (`./mvnw spring-boot:run`) and running the tests (`gulp itest`) in a second one.
+
+## First run
+The current frontend (jhipster) comes with 2 pre-configured users
+
+username | password
+-------- | --------
+user     | user
+admin    | admin
