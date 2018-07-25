@@ -5,18 +5,25 @@ import cloud.c4h.platform.domain.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustStrategy;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.*;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.net.ssl.SSLContext;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +31,7 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.X509Certificate;
 import java.util.*;
 
 /**
@@ -34,8 +42,36 @@ import java.util.*;
 @ConfigurationProperties(prefix = "thinkehr", ignoreUnknownFields = false)
 public class ThinkEhrRestClient {
 
+    private static ClientHttpRequestFactory clientHttpRequestFactory() {
+
+        try {
+            HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+            TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
+
+            SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
+                .loadTrustMaterial(null, acceptingTrustStrategy)
+                .build();
+
+            SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
+
+            CloseableHttpClient httpClient = HttpClients.custom()
+                .setSSLSocketFactory(csf)
+                .build();
+
+            HttpComponentsClientHttpRequestFactory requestFactory =
+                new HttpComponentsClientHttpRequestFactory();
+            requestFactory.setHttpClient(httpClient);
+            requestFactory.setReadTimeout(30000);
+            requestFactory.setConnectTimeout(30000);
+            return requestFactory;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     private final Logger log = LoggerFactory.getLogger(ThinkEhrRestClient.class);
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory());
     private final ObjectMapper objectMapper = new ObjectMapper();
     String adminName;
     String password;
@@ -318,7 +354,8 @@ public class ThinkEhrRestClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         String base64Creds = createBasicAuthString(this.adminName, this.password);
-        headers.add("Authorization", base64Creds);
+//        headers.add("Authorization", base64Creds);
+        headers.add("Authorization", "Basic YWRtaW46dXhhZG95OTg=");
 
         return headers;
     }
