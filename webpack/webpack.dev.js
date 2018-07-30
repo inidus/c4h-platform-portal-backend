@@ -26,7 +26,7 @@ module.exports = webpackMerge(commonConfig({ env: ENV }), {
                 '/v2/api-docs',
                 '/h2-console'
             ],
-            target: 'http://127.0.0.1:8081',
+            target: 'http://localhost:8080',
             secure: false
         }]
     },

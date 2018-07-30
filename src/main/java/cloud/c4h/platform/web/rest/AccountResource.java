@@ -98,7 +98,7 @@ public class AccountResource {
                 public ResponseEntity<String> apply(User user) {
                     Operino operino = OperinoService.createOperino("Starter Operino", user, true, true);
                     operinoService.addDefaultComponents(operino);
-                    operinoService.save(operino);
+//                    operinoService.save(operino);
                     return new ResponseEntity<String>(HttpStatus.OK);
                 }
             })

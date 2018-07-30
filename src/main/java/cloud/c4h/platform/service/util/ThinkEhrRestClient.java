@@ -5,6 +5,7 @@ import cloud.c4h.platform.domain.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -14,9 +15,12 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
@@ -31,6 +35,9 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
@@ -41,6 +48,35 @@ import java.util.*;
 @Transactional
 @ConfigurationProperties(prefix = "thinkehr", ignoreUnknownFields = false)
 public class ThinkEhrRestClient {
+
+    public HttpComponentsClientHttpRequestFactory reqFact() {
+
+        TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
+
+        SSLContext sslContext = null;
+        try {
+            sslContext = org.apache.http.ssl.SSLContexts.custom()
+                .loadTrustMaterial(null, acceptingTrustStrategy)
+                .build();
+        } catch (Exception ex){
+            throw new RuntimeException(ex);
+        }
+
+        HttpClient client = HttpClients.custom()
+            .setSSLContext(sslContext)
+            .build();
+        return new HttpComponentsClientHttpRequestFactory(client);
+    }
+
+    private RestTemplate buildRestTemplateInstance(){
+        RestTemplate result = new RestTemplate(reqFact());
+        for (HttpMessageConverter converter : result.getMessageConverters()) {
+            if (converter instanceof StringHttpMessageConverter) {
+                ((StringHttpMessageConverter) converter).setWriteAcceptCharset(false);
+            }
+        }
+        return result;
+    }
 
     private static ClientHttpRequestFactory clientHttpRequestFactory() {
 
@@ -71,7 +107,7 @@ public class ThinkEhrRestClient {
     }
 
     private final Logger log = LoggerFactory.getLogger(ThinkEhrRestClient.class);
-    private final RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory());
+    private final RestTemplate restTemplate = buildRestTemplateInstance();
     private final ObjectMapper objectMapper = new ObjectMapper();
     String adminName;
     String password;
@@ -100,7 +136,7 @@ public class ThinkEhrRestClient {
     String queryEhrId() throws JSONException {
         String url = baseUrl + "ehr/?subjectId=9999999000&subjectNamespace=uk.nhs.nhs_number";
         HttpEntity<Object> request = new HttpEntity<>(getAdminHeaders());
-        ResponseEntity<String> result = new RestTemplate().exchange(url, HttpMethod.GET, request, String.class);
+        ResponseEntity<String> result = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
         if (result.getStatusCode() == HttpStatus.OK) {
             return new JSONObject(result.getBody()).getString("ehrId");
         } else {
@@ -112,7 +148,7 @@ public class ThinkEhrRestClient {
     String queryPartyId(String firstName, String lastName) throws JSONException {
         String url = baseUrl + "demographics/party/query/?lastNames=*" + lastName + "*&firstNames=*" + firstName + "*";
         HttpEntity<Object> request = new HttpEntity<>(getAdminHeaders());
-        ResponseEntity<String> result = new RestTemplate().exchange(url, HttpMethod.GET, request, String.class);
+        ResponseEntity<String> result = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
         if (result.getStatusCode() == HttpStatus.OK) {
             return new JSONObject(result.getBody()).getJSONArray("parties").getJSONObject(0).getString("id");
         } else {
@@ -130,7 +166,7 @@ public class ThinkEhrRestClient {
         String aqlRequest = "{\"aql\" : \"" + aql + "\"}";
 
         HttpEntity<String> postEntity = new HttpEntity<>(aqlRequest, getAdminHeaders());
-        ResponseEntity<String> result = new RestTemplate().exchange(url, HttpMethod.POST, postEntity, String.class);
+        ResponseEntity<String> result = restTemplate.exchange(url, HttpMethod.POST, postEntity, String.class);
 
         if (result.getStatusCode() == HttpStatus.OK) {
             return new JSONObject(result.getBody()).getJSONArray("resultSet").getJSONObject(0).getString("uid");
@@ -272,6 +308,7 @@ public class ThinkEhrRestClient {
 
             HttpEntity<String> templateRequest = new HttpEntity<>(templateToSubmit, httpHeaders);
             log.trace("templateRequest = " + templateRequest);
+
             ResponseEntity templateResponse = restTemplate.postForEntity(baseUrl + "template", templateRequest, String.class);
             log.trace("templateResponse = " + templateResponse);
 
@@ -293,7 +330,8 @@ public class ThinkEhrRestClient {
             "}";
         HttpEntity<Object> request = new HttpEntity<>(requestJson, getAdminHeaders());
         log.debug("createDomain" + requestJson);
-        return restTemplate.exchange(uri, HttpMethod.POST, request, String.class);
+        return restTemplate.postForEntity(uri,request, String.class);
+//        return tempRestTemplate.exchange(uri, HttpMethod.POST, request, String.class);
     }
 
     public ResponseEntity<String> createUser(String domainName, User domainUser, String domainPassword) throws URISyntaxException {
@@ -310,6 +348,7 @@ public class ThinkEhrRestClient {
             "\"superUser\": false" +
             "}";
         HttpEntity<Object> request = new HttpEntity<>(requestJson, getAdminHeaders());
+
 
         return restTemplate.exchange(uri, HttpMethod.POST, request, String.class);
     }
