@@ -68,6 +68,8 @@ public class ThinkEhrRestClient {
         return new HttpComponentsClientHttpRequestFactory(client);
     }
 
+    // Stops default Accept-Charset header being created
+    // see https://stackoverflow.com/questions/44762794/java-spring-resttemplate-sets-unwanted-headers
     private RestTemplate buildRestTemplateInstance(){
         RestTemplate result = new RestTemplate(reqFact());
         for (HttpMessageConverter converter : result.getMessageConverters()) {
