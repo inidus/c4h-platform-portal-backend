@@ -92,7 +92,7 @@ public interface OperinoService {
      */
     Page<Operino> search(String query, Pageable pageable);
 
-    Map<String, String> getConfigForOperino(Operino operino);
+    //Map<String, String> getConfigForOperino(Operino operino);
 
     Notification sendNotification(Notification notification);
 

@@ -10,6 +10,8 @@ import cloud.c4h.platform.repository.NotificationRepository;
 import cloud.c4h.platform.repository.OperinoRepository;
 import cloud.c4h.platform.repository.search.OperinoSearchRepository;
 import cloud.c4h.platform.security.SecurityUtils;
+import cloud.c4h.platform.service.OperinoConfiguration;
+import cloud.c4h.platform.service.OperinoProvisioner;
 import cloud.c4h.platform.service.OperinoService;
 import cloud.c4h.platform.service.UserService;
 import cloud.c4h.platform.service.util.ThinkEhrRestClient;
@@ -42,6 +44,7 @@ public class OperinoServiceImpl implements OperinoService {
     private final OperinoSearchRepository operinoSearchRepository;
     private final RabbitTemplate rabbitTemplate;
     private final ThinkEhrRestClient thinkEhrRestClient;
+    private final OperinoProvisioner operinoProvisioner;
 
     private Boolean createNewOperinoWithComponents;
 
@@ -50,13 +53,15 @@ public class OperinoServiceImpl implements OperinoService {
                               OperinoSearchRepository operinoSearchRepository,
                               UserService userService,
                               RabbitTemplate rabbitTemplate,
-                              ThinkEhrRestClient thinkEhrRestClient) {
+                              ThinkEhrRestClient thinkEhrRestClient,
+                              OperinoProvisioner operinoProvisioner) {
         this.operinoRepository = operinoRepository;
         this.operinoSearchRepository = operinoSearchRepository;
         this.notificationRepository = notificationRepository;
         this.userService = userService;
         this.rabbitTemplate = rabbitTemplate;
         this.thinkEhrRestClient = thinkEhrRestClient;
+        this.operinoProvisioner = operinoProvisioner;
     }
 
     /**
@@ -65,6 +70,21 @@ public class OperinoServiceImpl implements OperinoService {
      * @param operino the entity to save
      * @return the persisted entity
      */
+//    @Override
+//    public Operino save(Operino operino) {
+//        log.debug("Request to save Operino : {}", operino);
+//        operino.setUser(userService.getUserWithAuthoritiesByLogin(SecurityUtils.getCurrentUserLogin()).get());
+//        // assign all components to operino before save - cascade will save components automatically
+//        for (OperinoComponent component : operino.getComponents()) {
+//            component.setOperino(operino);
+//        }
+//        Operino result = operinoRepository.save(operino);
+//        operinoSearchRepository.save(result);
+//        rabbitTemplate.convertAndSend("operinos", result);
+//        log.info("Sent off result to rabbitmq");
+//        return result;
+//    }
+
     @Override
     public Operino save(Operino operino) {
         log.debug("Request to save Operino : {}", operino);
@@ -75,8 +95,10 @@ public class OperinoServiceImpl implements OperinoService {
         }
         Operino result = operinoRepository.save(operino);
         operinoSearchRepository.save(result);
-        rabbitTemplate.convertAndSend("operinos", result);
-        log.info("Sent off result to rabbitmq");
+
+        operinoProvisioner.receive(operino);
+//        rabbitTemplate.convertAndSend("operinos", result);
+//        log.info("Sent off result to rabbitmq");
         return result;
     }
 
@@ -179,38 +201,6 @@ public class OperinoServiceImpl implements OperinoService {
         log.debug("Request to search for a page of Operinos for query {}", query);
         Page<Operino> result = operinoSearchRepository.search(queryStringQuery(query), pageable);
         return result;
-    }
-
-
-    /**
-     * Gets config associated with an operino
-     *
-     * @param operino the operino to get config for
-     * @return the congig as a map
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public Map<String, String> getConfigForOperino(Operino operino) {
-
-        String name = operino.getUser().getFirstName() + operino.getUser().getLastName();
-        if (name.length() < 1) {
-            name = operino.getDomain();
-        }
-
-        String user = operino.getUser().getLogin() + "_" + operino.getDomain();
-        String pass = operino.getUser().getPassword().substring(0, 12);
-
-        // create Map of data to be posted for domain creation
-        Map<String, String> data = new HashMap<>();
-        data.put(DOMAIN, operino.getDomain());
-        data.put(DOMAIN_SYSTEM_ID, operino.getDomain());
-        data.put(USER_DISPLAY_NAME_OR_DOMAIN, name);
-        data.put(OPERINO_NAME, operino.getName());
-        data.put(USERNAME, user);
-        data.put(PASSWORD, pass);
-        data.put(BASE_URL, this.thinkEhrRestClient.getBaseUrl());
-
-        return data;
     }
 
     @Override

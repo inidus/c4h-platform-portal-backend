@@ -3,6 +3,7 @@ package cloud.c4h.platform.web.rest;
 import cloud.c4h.platform.domain.Operino;
 import cloud.c4h.platform.domain.OperinoComponent;
 import cloud.c4h.platform.service.OperinoComponentService;
+import cloud.c4h.platform.service.OperinoConfiguration;
 import cloud.c4h.platform.service.OperinoService;
 import cloud.c4h.platform.web.rest.util.HeaderUtil;
 import cloud.c4h.platform.web.rest.util.PaginationUtil;
@@ -39,10 +40,14 @@ public class OperinoResource {
 
     private final OperinoService operinoService;
     private final OperinoComponentService operinoComponentService;
+    private final OperinoConfiguration operinoConfigService;
 
-    public OperinoResource(OperinoService operinoService, OperinoComponentService operinoComponentService) {
+    public OperinoResource(OperinoService operinoService,
+                           OperinoComponentService operinoComponentService,
+                           OperinoConfiguration operinoConfigService) {
         this.operinoService = operinoService;
         this.operinoComponentService = operinoComponentService;
+        this.operinoConfigService = operinoConfigService;
     }
 
     /**
@@ -159,7 +164,7 @@ public class OperinoResource {
         log.debug("REST request to get Operino : {}", id);
         Operino operino = operinoService.verifyOwnershipAndGet(id);
         if (operino != null) {
-            return new ResponseEntity<>(operinoService.getConfigForOperino(operino), HttpStatus.OK);
+            return new ResponseEntity<>(operinoConfigService.getConfigForOperino(operino), HttpStatus.OK);
         } else {
             return ResponseEntity.badRequest()
                 .headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Not authorized", String.valueOf(id))).build();

@@ -4,6 +4,7 @@ import cloud.c4h.platform.domain.Notification;
 import cloud.c4h.platform.domain.enumeration.NotificationStatus;
 import cloud.c4h.platform.repository.NotificationRepository;
 import cloud.c4h.platform.service.MailService;
+import cloud.c4h.platform.service.OperinoConfiguration;
 import cloud.c4h.platform.service.OperinoService;
 import cloud.c4h.platform.service.util.PdfReportGenerator;
 import cloud.c4h.platform.service.util.ThinkEhrRestClient;
@@ -49,6 +50,9 @@ public class NotificationProcessorImpl {
     private OperinoService operinoService;
 
     @Autowired
+    private OperinoConfiguration operinoConfigService;
+
+    @Autowired
     private MailService mailService;
 
     //    @RabbitListener(queues = "notifications")
@@ -60,7 +64,7 @@ public class NotificationProcessorImpl {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         if (!skipCompositionIdValidation) {
-            Map<String, String> config = operinoService.getConfigForOperino(notification.getOperino());
+            Map<String, String> config = operinoConfigService.getConfigForOperino(notification.getOperino());
             String user = config.get(OperinoService.USERNAME);
             String pass = config.get(OperinoService.PASSWORD);
 
