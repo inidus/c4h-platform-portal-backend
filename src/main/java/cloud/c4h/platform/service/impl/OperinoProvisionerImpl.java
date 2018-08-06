@@ -3,6 +3,7 @@ package cloud.c4h.platform.service.impl;
 import cloud.c4h.platform.domain.Operino;
 import cloud.c4h.platform.domain.Patient;
 import cloud.c4h.platform.service.MailService;
+import cloud.c4h.platform.service.OperinoConfiguration;
 import cloud.c4h.platform.service.OperinoProvisioner;
 import cloud.c4h.platform.service.OperinoService;
 import cloud.c4h.platform.service.util.ParameterCollector;
@@ -42,7 +43,7 @@ import java.util.Map;
  */
 @Service
 @Transactional
-@RabbitListener(queues = "operinos")
+//@RabbitListener(queues = "operinos")
 @ConfigurationProperties(prefix = "provisioner", ignoreUnknownFields = false)
 public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisioner {
     /**
@@ -55,7 +56,8 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
     String agentName;
 
     @Autowired
-    OperinoService operinoService;
+    OperinoConfiguration operinoConfigService;
+
     @Autowired
     ThinkEhrRestClient thinkEhrRestClient;
     @Autowired
@@ -72,7 +74,6 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
     }
 
     @Override
-    @RabbitHandler
     public void receive(@Payload Operino project) {
         log.debug("Receiving Project " + project.toString());
         try {
@@ -87,7 +88,7 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
     }
 
     private void sendConfirmationEmail(@Payload Operino project) {
-        Map<String, String> config = operinoService.getConfigForOperino(project);
+        Map<String, String> config = operinoConfigService.getConfigForOperino(project);
 
         try {
             ParameterCollector parameterCollector = new ParameterCollector(thinkEhrRestClient, config);

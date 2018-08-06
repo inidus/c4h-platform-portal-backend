@@ -2,6 +2,7 @@ package cloud.c4h.platform.web.rest;
 
 import cloud.c4h.platform.domain.Operino;
 import cloud.c4h.platform.security.SecurityUtils;
+import cloud.c4h.platform.service.OperinoConfiguration;
 import cloud.c4h.platform.service.OperinoService;
 import cloud.c4h.platform.service.util.ParameterCollector;
 import cloud.c4h.platform.service.util.ThinkEhrRestClient;
@@ -32,6 +33,10 @@ public class DownloadController {
     @Autowired
     ThinkEhrRestClient ehrClient;
 
+    @Autowired
+    OperinoConfiguration operinoConfigService;
+
+
     @GetMapping(value = "/postman/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public HttpEntity<byte[]> downloadPostman(@PathVariable long id) {
         String user = SecurityUtils.getCurrentUserLogin();
@@ -44,7 +49,7 @@ public class DownloadController {
         }
 
         try {
-            Map<String, String> config = projectService.getConfigForOperino(project);
+            Map<String, String> config = operinoConfigService.getConfigForOperino(project);
             ParameterCollector collector = new ParameterCollector(ehrClient, config);
             byte[] document = collector.getPostmanConfig().toString().getBytes();
 

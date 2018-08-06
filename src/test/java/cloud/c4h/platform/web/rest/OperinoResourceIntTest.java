@@ -5,6 +5,7 @@ import cloud.c4h.platform.domain.Operino;
 import cloud.c4h.platform.repository.OperinoRepository;
 import cloud.c4h.platform.repository.search.OperinoSearchRepository;
 import cloud.c4h.platform.service.OperinoComponentService;
+import cloud.c4h.platform.service.OperinoConfiguration;
 import cloud.c4h.platform.service.OperinoService;
 import cloud.c4h.platform.web.rest.errors.ExceptionTranslator;
 import org.junit.Before;
@@ -51,6 +52,8 @@ public class OperinoResourceIntTest {
     private OperinoService operinoService;
     @Autowired
     private OperinoComponentService operinoComponentService;
+    @Autowired
+    private OperinoConfiguration operinoConfigService;
 
     @Autowired
     private OperinoSearchRepository operinoSearchRepository;
@@ -74,7 +77,7 @@ public class OperinoResourceIntTest {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        OperinoResource operinoResource = new OperinoResource(operinoService, operinoComponentService);
+        OperinoResource operinoResource = new OperinoResource(operinoService, operinoComponentService, operinoConfigService);
         this.restOperinoMockMvc = MockMvcBuilders.standaloneSetup(operinoResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
