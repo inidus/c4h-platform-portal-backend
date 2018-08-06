@@ -3,6 +3,7 @@ package cloud.c4h.platform.service.impl;
 import cloud.c4h.platform.domain.Operino;
 import cloud.c4h.platform.service.OperinoConfiguration;
 import cloud.c4h.platform.service.util.ThinkEhrRestClient;
+import org.apache.commons.codec.binary.Base64;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +39,11 @@ public class OperinoConfigurationImpl  implements OperinoConfiguration {
         String user = operino.getUser().getLogin() + "_" + operino.getDomain();
         String pass = operino.getUser().getPassword().substring(0, 12);
 
+        String plainCreds = user + ":" + pass;
+        byte[] plainCredsBytes = plainCreds.getBytes();
+        byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes);
+        String base64Creds = new String(base64CredsBytes);
+
         // create Map of data to be posted for domain creation
         Map<String, String> data = new HashMap<>();
         data.put(DOMAIN, operino.getDomain());
@@ -46,6 +52,7 @@ public class OperinoConfigurationImpl  implements OperinoConfiguration {
         data.put(OPERINO_NAME, operino.getName());
         data.put(USERNAME, user);
         data.put(PASSWORD, pass);
+        data.put(API_TOKEN,base64Creds);
         data.put(BASE_URL, this.thinkEhrRestClient.getBaseUrl());
 
         return data;
