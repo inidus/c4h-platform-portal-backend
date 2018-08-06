@@ -45,7 +45,8 @@ public class ParameterCollector {
         String pass = config.get(OperinoService.PASSWORD);
 
         return new JSONArray()
-            .put(createMapEntry("openEhrApi", getOpenEhrApiAddress()))
+        //    .put(createMapEntry("openEhrApi", getOpenEhrApiAddress()))
+            .put(createMapEntry("openEhrApi", config.get(OperinoService.BASE_URL)))
             .put(createMapEntry("CDRName", getCdrName()))
             .put(createMapEntry("domainSuffix", getDomainSuffix()))
             .put(createMapEntry("domainName", config.get(OperinoService.DOMAIN)))
