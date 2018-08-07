@@ -109,7 +109,7 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
     private HttpHeaders provision(Operino project) throws URISyntaxException {
         String domainName = project.getDomain();
         thinkEhrRestClient.createDomain(domainName, project.getName());
-        thinkEhrRestClient.createUser(domainName, project.getUser(), DOMAIN_PASSWORD);
+        thinkEhrRestClient.createUser(domainName, project.getName(), DOMAIN_PASSWORD);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", ThinkEhrRestClient.createBasicAuthString(domainName, DOMAIN_PASSWORD));

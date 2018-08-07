@@ -10,8 +10,8 @@
     <jhi-alert-error></jhi-alert-error>
     <div *ngIf="operino.config" class="row">
         <!--<h4>API Configuration</h4>-->
-        <h4 class="col-sm-3" jhiTranslateDisabled="operonCloudPlatformApp.operino.config.token">Token</h4>
-        <pre class="col-sm-9 text-muted">Basic {{operino.config.token}}</pre>
+        <h4 class="col-sm-3" jhiTranslateDisabled="operonCloudPlatformApp.operino.config.token">API Token</h4>
+        <pre class="col-sm-9 text-muted">{{operino.config.token}}</pre>
         <div class="col-sm-6">
             <dl class="row-md jh-entity-details">
                 <dt><span jhiTranslateDisabled="operonCloudPlatformApp.operino.domain">Domain</span></dt>

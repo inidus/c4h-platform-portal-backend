@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import cloud.c4h.platform.service.OperinoService;
 
 import javax.net.ssl.SSLContext;
 import java.io.BufferedReader;
@@ -135,9 +136,9 @@ public class ThinkEhrRestClient {
         return responseEntity;
     }
 
-    String queryEhrId() throws JSONException {
+    String queryEhrId( HttpHeaders httpHeaders) throws JSONException {
         String url = baseUrl + "ehr/?subjectId=9999999000&subjectNamespace=uk.nhs.nhs_number";
-        HttpEntity<Object> request = new HttpEntity<>(getAdminHeaders());
+        HttpEntity<Object> request = new HttpEntity<>(httpHeaders);
         ResponseEntity<String> result = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
         if (result.getStatusCode() == HttpStatus.OK) {
             return new JSONObject(result.getBody()).getString("ehrId");
@@ -147,9 +148,9 @@ public class ThinkEhrRestClient {
         }
     }
 
-    String queryPartyId(String firstName, String lastName) throws JSONException {
+    String queryPartyId(HttpHeaders httpHeaders, String firstName, String lastName) throws JSONException {
         String url = baseUrl + "demographics/party/query/?lastNames=*" + lastName + "*&firstNames=*" + firstName + "*";
-        HttpEntity<Object> request = new HttpEntity<>(getAdminHeaders());
+        HttpEntity<Object> request = new HttpEntity<>(httpHeaders);
         ResponseEntity<String> result = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
         if (result.getStatusCode() == HttpStatus.OK) {
             return new JSONObject(result.getBody()).getJSONArray("parties").getJSONObject(0).getString("id");
@@ -159,7 +160,7 @@ public class ThinkEhrRestClient {
         }
     }
 
-    String queryCompositionId(String ehrId) throws JSONException {
+    String queryCompositionId(HttpHeaders httpHeaders,String ehrId) throws JSONException {
         String url = baseUrl + "query";
 
         String aql = "select c/context/start_time/value as start_time,"
@@ -167,7 +168,7 @@ public class ThinkEhrRestClient {
             + " c/uid/value as uid from EHR e [ehr_id/value='" + ehrId + "'] contains COMPOSITION c";
         String aqlRequest = "{\"aql\" : \"" + aql + "\"}";
 
-        HttpEntity<String> postEntity = new HttpEntity<>(aqlRequest, getAdminHeaders());
+        HttpEntity<String> postEntity = new HttpEntity<>(aqlRequest, httpHeaders);
         ResponseEntity<String> result = restTemplate.exchange(url, HttpMethod.POST, postEntity, String.class);
 
         if (result.getStatusCode() == HttpStatus.OK) {
@@ -326,7 +327,7 @@ public class ThinkEhrRestClient {
         URI uri = new URI(cdrUrl + "/admin/rest/v1/domains");
         String requestJson = "{" +
             "\"blocked\": \"false\"," +
-            "\"description\": \"" + projectName + "\"," +
+            "\"description\": \"" + projectName + "_" + domainName + "\"," +
             "\"name\": \"" + domainName + "\"," +
             "\"systemId\": \"" + domainName + "\"" +
             "}";
@@ -336,13 +337,13 @@ public class ThinkEhrRestClient {
 //        return tempRestTemplate.exchange(uri, HttpMethod.POST, request, String.class);
     }
 
-    public ResponseEntity<String> createUser(String domainName, User domainUser, String domainPassword) throws URISyntaxException {
+    public ResponseEntity<String> createUser(String domainName, String projectName, String domainPassword) throws URISyntaxException {
         URI uri = new URI(cdrUrl + "/admin/rest/v1/users");
 
         String requestJson = "{" +
             "\"username\": \"" + domainName + "\"," +
             "\"password\": \"" + domainPassword + "\"," +
-            "\"name\": \"" + domainUser.getLogin() + "\"," +
+            "\"name\": \"" + projectName + "_" + domainName + "\"," +
             "\"externalRef\": null," +
             "\"blocked\": false," +
             "\"defaultDomain\": \"" + domainName + "\"," +

@@ -4,6 +4,7 @@ import cloud.c4h.platform.service.OperinoService;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.http.HttpHeaders;
 
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -40,10 +41,13 @@ public class ParameterCollector {
     }
 
     private JSONArray createPostmanValues() throws JSONException {
-        String ehrId = thinkEhrRestClient.queryEhrId();
+
         String user = config.get(OperinoService.USERNAME);
         String pass = config.get(OperinoService.PASSWORD);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", ThinkEhrRestClient.createBasicAuthString(user, pass));
 
+        String ehrId = thinkEhrRestClient.queryEhrId(headers);
         return new JSONArray()
         //    .put(createMapEntry("openEhrApi", getOpenEhrApiAddress()))
             .put(createMapEntry("openEhrApi", config.get(OperinoService.BASE_URL)))
@@ -62,9 +66,9 @@ public class ParameterCollector {
             .put(createMapEntry("nhsNumber", "9999999000"))
             .put(createMapEntry("subjectNamespace", "uk.nhs.nhs_number"))
             .put(createMapEntry("ehrId", ehrId))
-            .put(createMapEntry("partyId", thinkEhrRestClient.queryPartyId("ivor", "cox")))
+            .put(createMapEntry("partyId", thinkEhrRestClient.queryPartyId(headers,"ivor", "cox")))
             .put(createMapEntry("templateId", "Vital Signs Encounter (Composition)"))
-            .put(createMapEntry("compositionId", thinkEhrRestClient.queryCompositionId(ehrId)));
+            .put(createMapEntry("compositionId", thinkEhrRestClient.queryCompositionId(headers,ehrId)));
     }
 
     private String createWorkspaceMarkdown(JSONObject postmanConfig) throws JSONException {
