@@ -397,6 +397,7 @@ public class ThinkEhrRestClient {
 
         String base64Creds = createBasicAuthString(this.adminName, this.password);
 //        headers.add("Authorization", base64Creds);
+        //TODO
         headers.add("Authorization", "Basic YWRtaW46dXhhZG95OTg=");
 
         return headers;
