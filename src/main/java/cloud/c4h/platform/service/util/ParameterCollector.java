@@ -46,8 +46,6 @@ public class ParameterCollector {
         String pass = config.get(OperinoService.PASSWORD);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", ThinkEhrRestClient.createBasicAuthString(user, pass));
-        headers.set("Content-Type", "application/json");
-        headers.set("Accept", "application/json");
 
         String ehrId = thinkEhrRestClient.queryEhrId(headers);
         return new JSONArray()
