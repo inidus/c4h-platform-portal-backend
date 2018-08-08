@@ -20,7 +20,7 @@ public class ParameterCollectorTest {
         data.put(OperinoService.USER_DISPLAY_NAME_OR_DOMAIN, "Test User");
         data.put(OperinoService.USERNAME, "admin");
         data.put(OperinoService.PASSWORD, "admin");
-        data.put(OperinoService.BASE_URL, "http://127.0.0.1:8080/rest/v1/");
+        data.put(OperinoService.CDR, "http://127.0.0.1:8080/rest/v1/");
 
         ThinkEhrRestClient restClient = new ThinkEhrRestClient();
         restClient.setAdminName("admin");

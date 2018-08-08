@@ -20,7 +20,6 @@ public interface OperinoService {
     // holds the same value as DOMAIN
     String DOMAIN_SYSTEM_ID = "domainSystemId";
     String USER_DISPLAY_NAME_OR_DOMAIN = "name";
-
     String CDR = "cdr";
     String EXPLORER = "explorer";
 

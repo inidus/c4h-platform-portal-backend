@@ -136,8 +136,7 @@ jhipster:
                 token-validity-in-seconds: 86400
                 token-validity-in-seconds-for-remember-me: 2592000
     mail: # specific JHipster mail property, for standard properties see MailProperties
-        #from: noreply@code4health.org
-        from: ian@inidus.com
+        from: noreply@code4health.org
 
         base-url: http://127.0.0.1:9000
     metrics: # DropWizard Metrics configuration, used by MetricsConfiguration
@@ -177,7 +176,7 @@ provisioner:
     subjectNamespace: uk.nhs.nhs_number
 # Notifier settings
 notifier:
-    openEhrUrl: https://cdr.code4health.org/rest/v1/composition/
+    openEhrUrl: https://c4h-thinkehr-app.inidus.tech/rest/v1/composition/
 #    openEhrUrl: https://cdr.diadem.inidus.cloud/rest/v1/
     teamName: Code4Health team
     skipCompositionIdValidation: true
@@ -194,7 +193,7 @@ thinkehr:
 
     cdrUrl: https://c4h-thinkehr-app.inidus.tech/
     baseUrl: https://c4h-thinkehr-app.inidus.tech/rest/v1/
-    explorerUrl: https://explorer.c4h-thinkehr-app.inidus.tech/explorer
+    explorerUrl: https://explorer-staging.inidus.tech/explorer/
     managerUrl: https://explorer.c4h-thinkehr-app.inidus.tech//ehrscape-manager/rest/
     adminName: admin
     password: admin

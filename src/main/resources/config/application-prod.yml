@@ -57,10 +57,13 @@ spring:
                   logs: index/log
                   data: index/data
     mail:
-        host: localhost
+        host: smtp.sendgrid.net
         port: 25
-        username:
-        password:
+        username: apikey
+        password: ***REMOVED***
+        protocol: smtp
+        tls: true
+
     thymeleaf:
         cache: true
 
@@ -154,12 +157,13 @@ provisioner:
     subjectNamespace: uk.nhs.nhs_number
 # Notifier settings
 notifier:
-    openEhrUrl: https://cdr.code4health.org/rest/v1/composition/
+    openEhrUrl:
     teamName: Code4Health team
     skipCompositionIdValidation: true
 thinkehr:
-    cdrUrl: https://cdr.code4health.org/rest/v1/
-    baseUrl: https://cdr.code4health.org/rest/v1/
-    managerUrl: https://explorer.code4health.org/ehrscape-manager/rest/
+    cdrUrl:
+    baseUrl:
+    managerUrl:
+    explorerUrl:
     adminName:
     password:
