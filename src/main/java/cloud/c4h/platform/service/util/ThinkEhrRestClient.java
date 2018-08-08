@@ -123,6 +123,8 @@ public class ThinkEhrRestClient {
     String cdrUrl;
     String baseUrl;
     String managerUrl;
+    String explorerUrl;
+
 
     public static String createBasicAuthString(String username, String password) {
         String plainCreds = username + ":" + password;
@@ -436,5 +438,11 @@ public class ThinkEhrRestClient {
 
     public void setCdrUrl(String cdrUrl) {
         this.cdrUrl = cdrUrl;
+    }
+
+    public String getExplorerUrl() { return this.explorerUrl; }
+
+    public void setExplorerUrl(String explorerUrl) {
+        this.explorerUrl = explorerUrl;
     }
 }

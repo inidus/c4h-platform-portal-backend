@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
     <head>
-        <title th:text="#{email.provisioning.title}">Operino Status</title>
+        <title th:text="#{email.provisioning.title}">Project Status</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     </head>
     <body>
@@ -9,7 +9,7 @@
             Dear
         </p>
         <p th:text="#{email.provisioning.text1(${operino.name})}">
-            Your Operino ${operino.name} is now ready for use on the Code4Health Platform. Click on the link below to view it:
+            Your Project ${operino.name} is now ready for use on the Code4Health Platform. Click on the link below to view it:
         </p>
         <p>
             <a th:href="@{|${baseUrl}/#/operino/${operino.id}|}"
@@ -17,8 +17,8 @@
         </p>
         <h4>Your operino configuration</h4>
         <ul>
-            <li th:text="#{operino.config.cdr(${config[cdr]})}">Username: th:text="${config.cdr}"</li>
-            <li th:text="#{operino.config.explorer(${config[explorer]})}">Username: th:text="${config.explorer}"</li>
+            <li th:text="#{operino.config.cdr(${config[cdr]})}">CDR API: th:text="${config.cdr}"</li>
+            <li th:text="#{operino.config.explorer(${config[explorer]})}">EHR Explorer: th:text="${config.explorer}"</li>
             <li th:text="#{operino.config.username(${config[username]})}">Username: th:text="${config.username}"</li>
             <li th:text="#{operino.config.password(${config[password]})}">Password: th:text="${config.password}"</li>
             <li th:text="#{operino.config.token(${config[token]})}">API Token: th:text="${config.token}"</li>

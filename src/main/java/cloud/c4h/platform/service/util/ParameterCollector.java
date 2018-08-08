@@ -46,11 +46,14 @@ public class ParameterCollector {
         String pass = config.get(OperinoService.PASSWORD);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", ThinkEhrRestClient.createBasicAuthString(user, pass));
+        headers.set("Content-Type", "application/json");
+        headers.set("Accept", "application/json");
 
         String ehrId = thinkEhrRestClient.queryEhrId(headers);
         return new JSONArray()
         //    .put(createMapEntry("openEhrApi", getOpenEhrApiAddress()))
-            .put(createMapEntry("openEhrApi", config.get(OperinoService.BASE_URL)))
+            .put(createMapEntry("openEhrApi", config.get(OperinoService.CDR)))
+            .put(createMapEntry("openEhrExplorer", config.get(OperinoService.EXPLORER)))
             .put(createMapEntry("CDRName", getCdrName()))
             .put(createMapEntry("domainSuffix", getDomainSuffix()))
             .put(createMapEntry("domainName", config.get(OperinoService.DOMAIN)))
@@ -79,6 +82,7 @@ public class ParameterCollector {
             + "## Domain login details\n"
             + "\n"
             + "openEhrApi:" + findValue(values, "openEhrApi") + "\n"
+            + "openEhrExplorer:" + findValue(values, "openEhrExplorer") + "\n"
             + "domainName:" + findValue(values, "domainName") + "\n"
             + "domainSuffix:" + findValue(values, "domainSuffix") + "\n"
             + "CDRName:" + findValue(values, "CDRName") + "\n"
@@ -119,7 +123,7 @@ public class ParameterCollector {
 
     private String getMarkdownFooter() {
         if (isCode4Health()) {
-            return "[CDR Explorer](https://cdr.code4health.org/explorer)\n"
+            return "[CDR Explorer](+)\n"
                 + "[CDR API Explorer](https://cdr.code4health.org/api-explorer)\n"
                 + "[CDR API Reference](https://dev.ehrscape.com/documentation.html)\n"
                 + "[Ehrscape - using Postman](https://docs.code4health.org/ES0-overview-openehr-ehrscape.html)";
@@ -161,7 +165,7 @@ public class ParameterCollector {
     private String getOpenEhrApiAddress() {
         // "https://some.domain.name/something/anything" -> "some.domain.name"
         Pattern pattern = Pattern.compile("[^\\/]*\\/\\/([^\\/]*)\\/.*");
-        Matcher matcher = pattern.matcher(config.get(OperinoService.BASE_URL));
+        Matcher matcher = pattern.matcher(config.get(OperinoService.CDR));
         if (matcher.find()) {
             return matcher.group(1);
         }

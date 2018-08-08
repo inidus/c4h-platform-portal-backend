@@ -21,7 +21,8 @@ public interface OperinoService {
     String DOMAIN_SYSTEM_ID = "domainSystemId";
     String USER_DISPLAY_NAME_OR_DOMAIN = "name";
 
-    String BASE_URL = "baseUrl";
+    String CDR = "cdr";
+    String EXPLORER = "explorer";
 
     /**
      * Static utility method to create an Operino with the given parameters

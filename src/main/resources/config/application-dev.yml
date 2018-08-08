@@ -136,7 +136,9 @@ jhipster:
                 token-validity-in-seconds: 86400
                 token-validity-in-seconds-for-remember-me: 2592000
     mail: # specific JHipster mail property, for standard properties see MailProperties
-        from: noreply@code4health.org
+        #from: noreply@code4health.org
+        from: ian@inidus.com
+
         base-url: http://127.0.0.1:9000
     metrics: # DropWizard Metrics configuration, used by MetricsConfiguration
         jmx.enabled: true
@@ -191,8 +193,9 @@ thinkehr:
 #    password: ***REMOVED***
 
     cdrUrl: https://c4h-thinkehr-app.inidus.tech/
-    baseUrl: https://c4h-thinkehr-app.inidus.tech//rest/v1/
-    managerUrl: https://c4h-thinkehr-app.inidus.tech//ehrscape-manager/rest/
+    baseUrl: https://c4h-thinkehr-app.inidus.tech/rest/v1/
+    explorerUrl: https://explorer.c4h-thinkehr-app.inidus.tech/explorer
+    managerUrl: https://explorer.c4h-thinkehr-app.inidus.tech//ehrscape-manager/rest/
     adminName: admin
     password: admin
 
