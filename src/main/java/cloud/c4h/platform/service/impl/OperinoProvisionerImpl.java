@@ -66,7 +66,7 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
     OperinoProvisionerImpl() {
         patients = new ArrayList<>();
         // load patients from files
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 1; i++) {
             patients.addAll(loadPatientsList("data/patients" + (i + 1) + ".csv"));
             log.debug("Loaded {} patients from file {}", patients.size(), "data/patients" + i + ".csv");
         }
@@ -112,7 +112,14 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
         thinkEhrRestClient.createUser(domainName, project.getName(), DOMAIN_PASSWORD);
 
         HttpHeaders headers = new HttpHeaders();
+
         headers.set("Authorization", ThinkEhrRestClient.createBasicAuthString(domainName, DOMAIN_PASSWORD));
+        headers.set("Content-Type", "application/json");
+        headers.set("Accept", "application/json");
+
+
+        ThinkEhrRestClient.createBasicAuthString(domainName, DOMAIN_PASSWORD);
+
         // upload various templates - we have to upload at least on template as work around fo EhrExplorer bug
         thinkEhrRestClient.uploadTemplate(headers, "sample_requests/problems/problems-template.xml");
         // now if user has requested provisioning, we upload other templates and generated data
