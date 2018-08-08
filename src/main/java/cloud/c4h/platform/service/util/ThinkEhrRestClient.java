@@ -3,7 +3,12 @@ package cloud.c4h.platform.service.util;
 import cloud.c4h.platform.domain.Patient;
 import cloud.c4h.platform.domain.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -40,6 +45,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+
 import java.util.*;
 
 /**
@@ -124,8 +130,11 @@ public class ThinkEhrRestClient {
         byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes);
         return "Basic " + new String(base64CredsBytes);
     }
-
     ResponseEntity<Map> doPost(String url, HttpHeaders httpHeaders, Object body) throws JsonProcessingException, RestClientException {
+
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        objectMapper.setDateFormat(new ISO8601DateFormat());
 
         HttpEntity<Object> request = new HttpEntity<>(objectMapper.writeValueAsString(body), httpHeaders);
         log.debug("request = " + request);
@@ -333,6 +342,8 @@ public class ThinkEhrRestClient {
             "}";
         HttpEntity<Object> request = new HttpEntity<>(requestJson, getAdminHeaders());
         log.debug("createDomain" + requestJson);
+        log.debug ("URL : " + cdrUrl);
+        log.debug("Headers" + getAdminHeaders());
         return restTemplate.postForEntity(uri,request, String.class);
 //        return tempRestTemplate.exchange(uri, HttpMethod.POST, request, String.class);
     }
@@ -396,9 +407,9 @@ public class ThinkEhrRestClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         String base64Creds = createBasicAuthString(this.adminName, this.password);
-//        headers.add("Authorization", base64Creds);
+        headers.add("Authorization", base64Creds);
         //TODO
-        headers.add("Authorization", "Basic YWRtaW46dXhhZG95OTg=");
+//        headers.add("Authorization", "Basic YWRtaW46dXhhZG95OTg=");
 
         return headers;
     }

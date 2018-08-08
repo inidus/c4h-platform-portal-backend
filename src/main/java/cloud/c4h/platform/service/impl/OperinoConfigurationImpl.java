@@ -21,6 +21,8 @@ public class OperinoConfigurationImpl  implements OperinoConfiguration {
         this.thinkEhrRestClient = thinkEhrRestClient;
     }
 
+    private static final String DOMAIN_PASSWORD = "$2a$10$619ki";
+
     /**
      * Gets config associated with an operino
      *
@@ -36,7 +38,8 @@ public class OperinoConfigurationImpl  implements OperinoConfiguration {
         }
 
         String user = operino.getDomain();
-        String pass = operino.getUser().getPassword().substring(0, 12);
+        // String pass = operino.getUser().getPassword().substring(0, 12);
+        String pass = DOMAIN_PASSWORD;
 
         // create Map of data to be posted for domain creation
         Map<String, String> data = new HashMap<>();
