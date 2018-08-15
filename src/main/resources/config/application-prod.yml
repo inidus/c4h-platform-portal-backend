@@ -158,12 +158,14 @@ provisioner:
 # Notifier settings
 notifier:
     openEhrUrl:
-    teamName: Code4Health team
+    teamName: Code4Health gang
     skipCompositionIdValidation: true
 thinkehr:
-    cdrUrl:
-    baseUrl:
-    managerUrl:
-    explorerUrl:
-    adminName:
-    password:
+    cdrUrl: https://c4h-thinkehr-app.inidus.tech/
+    baseUrl: https://c4h-thinkehr-app.inidus.tech/rest/v1/
+    explorerUrl: https://explorer-staging.inidus.tech/explorer/
+    managerUrl: https://explorer-staging.inidus.tech/ehrscape-manager/rest/
+    ehrSwagger: https://c4h-thinkehr-app.inidus.tech/swagger/index-rest.html
+    adminSwagger: https://c4h-thinkehr-app.inidus.tech/swagger/index-admin.html
+    adminName: admin
+    password: ***REMOVED***

@@ -100,7 +100,8 @@ public class MailService {
     }
 
     @Async
-    public void sendEmail(String to, String subject, String content, boolean isMultipart, boolean isHtml, InputStreamSource postman, InputStreamSource markdown) {
+    public void sendEmail(String to, String subject, String content, boolean isMultipart, boolean isHtml,
+                          InputStreamSource postman, InputStreamSource markdown, String operinoName) {
         log.debug("Send e-mail[multipart '{}' and html '{}'] to '{}' with subject '{}' and content={}",
             isMultipart, isHtml, to, subject, content);
 
@@ -111,8 +112,8 @@ public class MailService {
             message.setFrom(jHipsterProperties.getMail().getFrom());
             message.setSubject(subject);
             message.setText(content, isHtml);
-            message.addAttachment("Postman.json", postman);
-            message.addAttachment("Workspace.md", markdown);
+            message.addAttachment(operinoName +" Postman environment.json", postman);
+            message.addAttachment(operinoName +" Workspace.md", markdown);
             javaMailSender.send(mimeMessage);
             log.debug("Sent e-mail to User '{}'", to);
         } catch (Exception e) {
@@ -145,7 +146,7 @@ public class MailService {
         String subject = messageSource.getMessage("email.provisioning.title", null, locale);
 
         if (null != postman && null != markdown) {
-            sendEmail(operino.getUser().getEmail(), subject, content, true, true, postman, markdown);
+            sendEmail(operino.getUser().getEmail(), subject, content, true, true, postman, markdown, operino.getName());
         } else {
             sendEmail(operino.getUser().getEmail(), subject, content, false, true);
         }

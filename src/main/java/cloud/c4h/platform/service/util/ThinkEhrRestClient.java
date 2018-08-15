@@ -410,9 +410,6 @@ public class ThinkEhrRestClient {
 
         String base64Creds = createBasicAuthString(this.adminName, this.password);
         headers.add("Authorization", base64Creds);
-        //TODO
-//        headers.add("Authorization", "Basic YWRtaW46dXhhZG95OTg=");
-
         return headers;
     }
 
@@ -429,11 +426,15 @@ public class ThinkEhrRestClient {
     }
 
     public String getBaseUrl() {
-        return baseUrl;
+        return this.baseUrl;
     }
 
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
+    }
+
+    public String getCdrUrl() {
+        return this.cdrUrl;
     }
 
     public void setCdrUrl(String cdrUrl) {

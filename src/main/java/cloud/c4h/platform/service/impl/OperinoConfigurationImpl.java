@@ -51,7 +51,7 @@ public class OperinoConfigurationImpl  implements OperinoConfiguration {
         data.put(USERNAME, user);
         data.put(PASSWORD, pass);
         data.put(API_TOKEN,thinkEhrRestClient.createBasicAuthString(user,pass));
-        data.put(CDR, this.thinkEhrRestClient.getBaseUrl());
+        data.put(CDR, this.thinkEhrRestClient.getCdrUrl());
 
 
         return data;

@@ -194,9 +194,12 @@ thinkehr:
     cdrUrl: https://c4h-thinkehr-app.inidus.tech/
     baseUrl: https://c4h-thinkehr-app.inidus.tech/rest/v1/
     explorerUrl: https://explorer-staging.inidus.tech/explorer/
-    managerUrl: https://explorer.c4h-thinkehr-app.inidus.tech//ehrscape-manager/rest/
+    managerUrl: https://explorer.c4h-thinkehr-app.inidus.tech/ehrscape-manager/rest/
+    ehrSwagger: https://c4h-thinkehr-app.inidus.tech/swagger/index-rest.html
+    adminSwagger: https://c4h-thinkehr-app.inidus.tech/swagger/index-admin.html
+
     adminName: admin
-    password: admin
+    password: ***REMOVED***
 
 logging:
   level:
