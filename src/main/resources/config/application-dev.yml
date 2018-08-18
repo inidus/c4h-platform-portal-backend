@@ -170,40 +170,27 @@ jhipster:
 
 application:
 
-# Provisioner settings
 provisioner:
-    agentName: inidus_provisioner
+    agentName: provisioner
     subjectNamespace: uk.nhs.nhs_number
-# Notifier settings
+
 notifier:
     openEhrUrl: https://c4h-thinkehr-app.inidus.tech/rest/v1/composition/
-#    openEhrUrl: https://cdr.diadem.inidus.cloud/rest/v1/
     teamName: Code4Health team
     skipCompositionIdValidation: true
+
 thinkehr:
- #   cdrUrl: https://cdr.code4health.org
- #   baseUrl: https://cdr.code4health.org/rest/v1/
- #   managerUrl: https://explorer.code4health.org/ehrscape-manager/rest/
-
-#    cdrUrl: https://cdr.diadem.inidus.cloud/
-#    baseUrl: https://cdr.diadem.inidus.cloud/rest/v1/
-#    managerUrl: https://diadem.inidus.cloud/ehrscape-manager/rest/
-#    adminName: admin
-#    password: ***REMOVED***
-
-    cdrUrl: https://c4h-thinkehr-app.inidus.tech/
-    baseUrl: https://c4h-thinkehr-app.inidus.tech/rest/v1/
-    explorerUrl: https://explorer-staging.inidus.tech/explorer/
-    managerUrl: https://explorer.c4h-thinkehr-app.inidus.tech/ehrscape-manager/rest/
-    ehrSwagger: https://c4h-thinkehr-app.inidus.tech/swagger/index-rest.html
-    adminSwagger: https://c4h-thinkehr-app.inidus.tech/swagger/index-admin.html
-
     adminName: admin
-    password: ***REMOVED***
+    adminPassword: ***REMOVED***
+    cdrUrl: https://c4h-thinkehr-app.inidus.tech/
+    cdrPublic: https://c4h-thinkehr-app.inidus.tech
+    explorerPublic: https://explorer-staging.inidus.tech/explorer
+    docsPublic: https://platformdocs-code4healthdocs.inidus.tech
 
 logging:
   level:
     ROOT: DEBUG
+
 #    org.springframework.web: INFO
 #    guru.springframework.controllers: INFO
 #    org.hibernate: INFO

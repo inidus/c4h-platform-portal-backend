@@ -51,7 +51,6 @@ public class ParameterCollector {
 
         String ehrId = thinkEhrRestClient.queryEhrId(headers);
         return new JSONArray()
-        //    .put(createMapEntry("openEhrApi", getOpenEhrApiAddress()))
             .put(createMapEntry("openEhrApi", config.get(OperinoService.CDR)))
             .put(createMapEntry("openEhrExplorer", config.get(OperinoService.EXPLORER)))
             .put(createMapEntry("CDRName", getCdrName()))
@@ -160,16 +159,6 @@ public class ParameterCollector {
 
     private String getDomainSystemId() {
         return config.get(OperinoService.DOMAIN) + "_" + getDomainSuffix();
-    }
-
-    private String getOpenEhrApiAddress() {
-        // "https://some.domain.name/something/anything" -> "some.domain.name"
-        Pattern pattern = Pattern.compile("[^\\/]*\\/\\/([^\\/]*)\\/.*");
-        Matcher matcher = pattern.matcher(config.get(OperinoService.CDR));
-        if (matcher.find()) {
-            return matcher.group(1);
-        }
-        return "";
     }
 
     private String getCdrName() {

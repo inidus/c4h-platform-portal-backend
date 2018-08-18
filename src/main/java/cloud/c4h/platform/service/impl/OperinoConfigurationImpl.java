@@ -43,7 +43,11 @@ public class OperinoConfigurationImpl  implements OperinoConfiguration {
 
         // create Map of data to be posted for domain creation
         Map<String, String> data = new HashMap<>();
-        data.put(EXPLORER, this.thinkEhrRestClient.getExplorerUrl());
+        data.put(CDR, this.thinkEhrRestClient.getCdrPublic());
+        data.put(EXPLORER, this.thinkEhrRestClient.getExplorerPublic());
+        data.put(OVERVIEW_DOCS, this.thinkEhrRestClient.getDocsPublic());
+        data.put(EHR_API_DOCS, this.thinkEhrRestClient.getAdminApiDocs());
+        data.put(ADMIN_API_DOCS, this.thinkEhrRestClient.getEhrApiDocs());
         data.put(DOMAIN, operino.getDomain());
         data.put(DOMAIN_SYSTEM_ID, operino.getDomain());
         data.put(USER_DISPLAY_NAME_OR_DOMAIN, name);
@@ -51,8 +55,6 @@ public class OperinoConfigurationImpl  implements OperinoConfiguration {
         data.put(USERNAME, user);
         data.put(PASSWORD, pass);
         data.put(API_TOKEN,thinkEhrRestClient.createBasicAuthString(user,pass));
-        data.put(CDR, this.thinkEhrRestClient.getCdrUrl());
-
 
         return data;
     }

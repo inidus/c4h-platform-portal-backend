@@ -22,6 +22,10 @@ public interface OperinoService {
     String USER_DISPLAY_NAME_OR_DOMAIN = "name";
     String CDR = "cdr";
     String EXPLORER = "explorer";
+    String OVERVIEW_DOCS = "docs";
+    String EHR_API_DOCS = "ehrApiDocs";
+    String ADMIN_API_DOCS = "adminApiDocs";
+
 
     /**
      * Static utility method to create an Operino with the given parameters

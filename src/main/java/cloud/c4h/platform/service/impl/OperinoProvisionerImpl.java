@@ -107,21 +107,18 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
     }
 
     private HttpHeaders provision(Operino project) throws URISyntaxException {
+
+        // Create CDR domain
+
         String domainName = project.getDomain();
         thinkEhrRestClient.createDomain(domainName, project.getName());
         thinkEhrRestClient.createUser(domainName, project.getName(), DOMAIN_PASSWORD);
 
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = thinkEhrRestClient.getDefaultHeaders(domainName,DOMAIN_PASSWORD);
 
-        headers.set("Authorization", ThinkEhrRestClient.createBasicAuthString(domainName, DOMAIN_PASSWORD));
-        headers.set("Content-Type", "application/json");
-        headers.set("Accept", "application/json");
-
-
-        ThinkEhrRestClient.createBasicAuthString(domainName, DOMAIN_PASSWORD);
-
-        // upload various templates - we have to upload at least on template as work around fo EhrExplorer bug
+        // we have to upload at least on template as work around for an EhrExplorer bug
         thinkEhrRestClient.uploadTemplate(headers, "sample_requests/problems/problems-template.xml");
+
         // now if user has requested provisioning, we upload other templates and generated data
         if (project.getProvision()) {
             thinkEhrRestClient.uploadTemplate(headers, "sample_requests/allergies/allergies-template.xml");
