@@ -156,7 +156,7 @@ provisioner:
     subjectNamespace: uk.nhs.nhs_number
 
 notifier:
-    openEhrUrl: https://c4h-thinkehr-app.inidus.tech/rest/v1/composition/
+    openEhrUrl: http://thinkehr-app:8080/rest/v1/composition/
     teamName: Code4Health team
     skipCompositionIdValidation: true
 
@@ -164,8 +164,10 @@ notifier:
 thinkehr:
     adminName: admin
     adminPassword: admin
-    cdrUrl: https://c4h-thinkehr-app.inidus.tech/
+    cdrUrl: http://thinkehr-app:8080/
     cdrPublic: https://cdr.code4health.org
     explorerPublic: https://docs.code4health.org
     docsPublic: https://docs.code4health.org/
+
+
 
