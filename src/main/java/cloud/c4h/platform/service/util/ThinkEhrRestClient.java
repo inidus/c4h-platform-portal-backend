@@ -122,23 +122,17 @@ public class ThinkEhrRestClient {
 
     private static final String EHR_REST = "rest/v1/";
     private static final String ADMIN_REST = "admin/rest/v1/";
+    private static final String ADMIN_API_DOCS = "/index-admin.html";
+    private static final String EHR_API_DOCS = "/index-rest.html";
 
 
     public String getBaseEhrUrl() {
         return getCdrUrl()+ EHR_REST;
     }
+    public String getBaseAdminUrl() { return getCdrUrl()+ ADMIN_REST; }
 
-    public String getBaseAdminUrl() {
-        return getCdrUrl()+ ADMIN_REST;
-    }
-
-    public String getAdminApiDocs() {
-        return getCdrUrl()+ ADMIN_REST;
-    }
-
-    public String getEhrApiDocs() {
-        return getCdrUrl()+ ADMIN_REST;
-    }
+    public String getAdminApiDocs() { return getCdrUrl()+ ADMIN_API_DOCS;}
+    public String getEhrApiDocs() { return getCdrUrl()+ EHR_API_DOCS; }
 
 
     public static String createBasicAuthString(String username, String password) {

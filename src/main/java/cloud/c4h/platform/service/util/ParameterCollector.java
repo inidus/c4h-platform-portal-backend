@@ -52,7 +52,6 @@ public class ParameterCollector {
         String ehrId = thinkEhrRestClient.queryEhrId(headers);
         return new JSONArray()
             .put(createMapEntry("openEhrApi", config.get(OperinoService.CDR)))
-            .put(createMapEntry("openEhrExplorer", config.get(OperinoService.EXPLORER)))
             .put(createMapEntry("CDRName", getCdrName()))
             .put(createMapEntry("domainSuffix", getDomainSuffix()))
             .put(createMapEntry("domainName", config.get(OperinoService.DOMAIN)))
@@ -69,70 +68,65 @@ public class ParameterCollector {
             .put(createMapEntry("subjectNamespace", "uk.nhs.nhs_number"))
             .put(createMapEntry("ehrId", ehrId))
             .put(createMapEntry("partyId", thinkEhrRestClient.queryPartyId(headers,"ivor", "cox")))
+            .put(createMapEntry("compositionId", thinkEhrRestClient.queryCompositionId(headers, ehrId)))
             .put(createMapEntry("templateId", "Vital Signs Encounter (Composition)"))
-            .put(createMapEntry("compositionId", thinkEhrRestClient.queryCompositionId(headers,ehrId)));
+            .put(createMapEntry("cdrExplorer", config.get(OperinoService.CDR_EXPLORER)))
+            .put(createMapEntry("ehrApiDocs", config.get(OperinoService.EHR_API_DOCS)))
+            .put(createMapEntry("overviewDocs", config.get(OperinoService.OVERVIEW_DOCS)))
+            ;
     }
 
     private String createWorkspaceMarkdown(JSONObject postmanConfig) throws JSONException {
         JSONArray values = postmanConfig.getJSONArray("values");
 
-        return ("# " + getMarkdownHeading() + "\n"
-            + "\n"
-            + "## Domain login details\n"
-            + "\n"
-            + "openEhrApi:" + findValue(values, "openEhrApi") + "\n"
-            + "openEhrExplorer:" + findValue(values, "openEhrExplorer") + "\n"
-            + "domainName:" + findValue(values, "domainName") + "\n"
-            + "domainSuffix:" + findValue(values, "domainSuffix") + "\n"
-            + "CDRName:" + findValue(values, "CDRName") + "\n"
-            + "SessionHeader:" + findValue(values, "SessionHeader") + "\n"
-            + "Username:" + findValue(values, "Username") + "\n"
-            + "Password:" + findValue(values, "Password") + "\n"
-            + "Authorization:" + findValue(values, "Authorization") + "\n"
-            + "accountName:" + findValue(values, "accountName") + "\n"
-            + "domainSystemId:" + findValue(values, "domainSystemId") + "\n"
-            + "\n"
-            + "### Dummy patient\n"
-            + "\n"
-            + "committerName:" + findValue(values, "committerName") + "\n"
-            + "patientName:" + findValue(values, "patientName") + "\n"
-            + "subjectId:" + findValue(values, "subjectId") + "\n"
-            + "nhsNumber:" + findValue(values, "nhsNumber") + "\n"
-            + "subjectNamespace:" + findValue(values, "subjectNamespace") + "\n"
-            + "ehrId:" + findValue(values, "ehrId") + "\n"
-            + "partyId:" + findValue(values, "partyId") + "\n"
-            + "\n"
-            + "### Sample instance data for dummy patient\n"
-            + "\n"
-            + "templateId:" + findValue(values, "templateId") + "\n"
-            + "compositionId:" + findValue(values, "compositionId") + "\n"
-            + "\n"
-            + "### Useful links\n"
-            + "\n"
-            + getMarkdownFooter());
+        return ("# " + getMarkdownHeading() + "  \n"
+            + "  \n"
+            + "## Domain login details  \n"
+            + "  \n"
+            + "openEhrApi: " + findValue(values, "openEhrApi") + "  \n"
+            + "domainName: " + findValue(values, "domainName") + "  \n"
+            + "domainSuffix: " + findValue(values, "domainSuffix") + "  \n"
+            + "CDRName: " + findValue(values, "CDRName") + "  \n"
+            + "SessionHeader: " + findValue(values, "SessionHeader") + "  \n"
+            + "Username: " + findValue(values, "Username") + "  \n"
+            + "Password: " + findValue(values, "Password") + "  \n"
+            + "Authorization: `" + findValue(values, "Authorization") + "`  \n"
+            + "accountName: " + findValue(values, "accountName") + "  \n"
+            + "domainSystemId: `" + findValue(values, "domainSystemId") + "`  \n"
+            + "  \n"
+            + "### Dummy patient  \n"
+            + "  \n"
+            + "committerName: " + findValue(values, "committerName") + "  \n"
+            + "patientName: " + findValue(values, "patientName") + "  \n"
+            + "subjectId: " + findValue(values, "subjectId") + "  \n"
+            + "nhsNumber: " + findValue(values, "nhsNumber") + "  \n"
+            + "subjectNamespace: " + findValue(values, "subjectNamespace") + "  \n"
+            + "ehrId: `"  + findValue(values, "ehrId") + "`  \n"
+            + "partyId: `" + findValue(values, "partyId") + "`  \n"
+            + "  \n"
+            + "### Sample instance data for dummy patient  \n"
+            + "  \n"
+            + "templateId: `" + findValue(values, "templateId") + "`  \n"
+            + "compositionId: `" + findValue(values, "compositionId") + "`  \n"
+            + "  \n"
+            + "### Useful links  \n"
+            + "  \n"
+            + "[CDR Explorer](" + findValue(values, "cdrExplorer") + ")  \n"
+            + "[CDR API Explorer]("+ findValue(values, "ehrApiDocs") + ")  \n"
+            + "[CDR API Reference](https://dev.ehrscape.com/documentation.html)  \n"
+            + "[CDR API - using Postman]("+ findValue(values, "overviewDocs") +"/ES0-overview-openehr-ehrscape.html)  \n"
+            + "[CDR API - Postman Collection](https://www.getpostman.com/collections/205a8771a50cfa4716a9)  \n");
+
     }
 
     private String getMarkdownHeading() {
         if (isCode4Health()) {
-            return "Code4Health Project Provisioning";
+            return "Code4Health Project Provisioning  ";
         } else {
-            return "inidus Cloud Project Provisioning";
+            return "inidus Cloud Project Provisioning  ";
         }
     }
 
-    private String getMarkdownFooter() {
-        if (isCode4Health()) {
-            return "[CDR Explorer](+)\n"
-                + "[CDR API Explorer](https://cdr.code4health.org/api-explorer)\n"
-                + "[CDR API Reference](https://dev.ehrscape.com/documentation.html)\n"
-                + "[Ehrscape - using Postman](https://docs.code4health.org/ES0-overview-openehr-ehrscape.html)";
-        } else {
-            return "[CDR Explorer](https://cdr.inidus.cloud/explorer)\n" +
-                "[CDR API Explorer]( https://cdr.inidus.cloud/api-explorer)\n" +
-                "[CDR API Reference](https://dev.ehrscape.com/documentation.html)\n" +
-                "[Ehrscape - using Postman](https://docs.code4health.org/ES0-overview-openehr-ehrscape.html)";
-        }
-    }
 
     private String getDomainSuffix() {
         return isCode4Health() ? "code4health.org" : "inidus.cloud";
@@ -153,8 +147,8 @@ public class ParameterCollector {
     }
 
     private String getCommitterName() {
-        // defaults to 'Dr ' + Account name
-        return "Dr " + config.get(OperinoService.USER_DISPLAY_NAME_OR_DOMAIN);
+        // defaults to 'Dr ' + Operino name
+        return "Dr " + config.get(OperinoService.OPERINO_NAME);
     }
 
     private String getDomainSystemId() {

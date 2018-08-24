@@ -15,10 +15,10 @@
             <a th:href="@{|${baseUrl}/#/operino/${operino.id}|}"
                th:text="|${operino.name}|">Review Link</a>
         </p>
-        <h4>Your operino configuration</h4>
+        <h4>Your Project configuration</h4>
         <ul>
-            <li th:text="#{operino.config.cdr(${config[cdr]})}">CDR API: th:text="${config.cdr}"</li>
-            <li th:text="#{operino.config.explorer(${config[explorer]})}">EHR Explorer: th:text="${config.explorer}"</li>
+            <li th:text="#{operino.config.cdr(${config[cdr]})}">CDR REST URL: th:text="${config.cdr}"</li>
+            <li th:text="#{operino.config.cdrExplorer(${config[cdrExplorer]})}">CDR Explorer: th:text="${config.cdrExplorer}"</li>
             <li th:text="#{operino.config.username(${config[username]})}">Username: th:text="${config.username}"</li>
             <li th:text="#{operino.config.password(${config[password]})}">Password: th:text="${config.password}"</li>
             <li th:text="#{operino.config.token(${config[token]})}">API Token: th:text="${config.token}"</li>

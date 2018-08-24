@@ -188,8 +188,8 @@ thinkehr:
 #    docsPublic: https://platformdocs-code4healthdocs.inidus.tech
 
     adminName: admin
-    adminPassword: ***REMOVED***
-    cdrUrl: https://cdr.code4health.o
+    adminPassword: admin
+    cdrUrl: https://c4h-thinkehr-app.inidus.tech/
     cdrPublic: https://cdr.code4health.org
     explorerPublic: https://explorer.code4health.org/explorer
     docsPublic: https://docs.code4health.org
