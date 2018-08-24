@@ -111,6 +111,7 @@ public class OperinoProvisionerImpl implements InitializingBean, OperinoProvisio
         // Create CDR domain
 
         String domainName = project.getDomain();
+
         thinkEhrRestClient.createDomain(domainName, project.getName());
         thinkEhrRestClient.createUser(domainName, project.getName(), DOMAIN_PASSWORD);
 

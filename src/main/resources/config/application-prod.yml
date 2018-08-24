@@ -57,12 +57,12 @@ spring:
                   logs: index/log
                   data: index/data
     mail:
- #       host: smtp.sendgrid.net
- #       port: 25
- #       username: apikey
- #       password: ***REMOVED***
- #       protocol: smtp
- #       tls: true
+        host: smtp.sendgrid.net
+        port: 25
+        username: apikey
+        password: ***REMOVED***
+        protocol: smtp
+        tls: true
 
     thymeleaf:
         cache: true
@@ -151,21 +151,21 @@ jhipster:
 application:
 #
 # set in platform-vars.env
-#provisioner:
-#    agentName: provisioner
-#    subjectNamespace: uk.nhs.nhs_number
-#
-#notifier:
-#    openEhrUrl: https://c4h-thinkehr-app.inidus.tech/rest/v1/composition/
-#    teamName: Code4Health team
-#    skipCompositionIdValidation: true
+provisioner:
+    agentName: provisioner
+    subjectNamespace: uk.nhs.nhs_number
+
+notifier:
+    openEhrUrl: http://thinkehr-app:8080/rest/v1/composition/
+    teamName: Code4Health team
+    skipCompositionIdValidation: true
 
 
-#thinkehr:
-#    adminName: admin
-#    adminPassword: ***REMOVED***
-#    cdrUrl: https://c4h-thinkehr-app.inidus.tech/
-#    cdrPublic: https://c4h-thinkehr-app.inidus.tech/
-#    explorerPublic: https://explorer-staging.inidus.tech/explorer/
-#    docsPublic: https://platformdocs-code4healthdocs.inidus.tech/
+thinkehr:
+    adminName: admin
+    adminPassword: admin
+    cdrUrl: http://thinkehr-app:8080/
+    cdrPublic: https://cdr.code4health.org
+    explorerPublic: https://docs.code4health.org
+    docsPublic: https://docs.code4health.org/
 

@@ -227,6 +227,7 @@ public class ThinkEhrRestClient {
         ResponseEntity<Map> responseEntity = doPost(getBaseEhrUrl() + "demographics/party", httpHeaders, transformPatient(patient));
         log.debug("responseEntity = {}", responseEntity);
         log.debug("responseEntity.getBody() = {}", responseEntity.getBody());
+
         Map response = responseEntity.getBody();
         if (responseEntity.getStatusCode() == HttpStatus.CREATED) {
             Map<String, String> meta = (Map<String, String>) response.get("meta");
