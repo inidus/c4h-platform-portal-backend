@@ -1,15 +1,10 @@
 package cloud.c4h.platform.service.util;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.http.ResponseEntity;
 
 import java.net.URISyntaxException;
-import java.text.DateFormat;
-import java.util.Date;
-import java.util.UUID;
 
 public class ThinkEhrRestClientTest {
     private ThinkEhrRestClient impl;
@@ -19,7 +14,7 @@ public class ThinkEhrRestClientTest {
         impl = new ThinkEhrRestClient();
         impl.setCdrUrl("http://127.0.0.1:8080");
         impl.setAdminName("admin");
-        impl.setPassword("admin");
+        impl.setAdminPassword("admin");
     }
 
     @After

@@ -16,12 +16,16 @@ public interface OperinoService {
     String OPERINO_NAME = "operinoName";
     String USERNAME = "username";
     String PASSWORD = "password";
-
+    String API_TOKEN = "token";
     // holds the same value as DOMAIN
     String DOMAIN_SYSTEM_ID = "domainSystemId";
     String USER_DISPLAY_NAME_OR_DOMAIN = "name";
+    String CDR = "cdr";
+    String CDR_EXPLORER = "cdrExplorer";
+    String OVERVIEW_DOCS = "overviewDocs";
+    String EHR_API_DOCS = "ehrApiDocs";
+    String ADMIN_API_DOCS = "adminApiDocs";
 
-    String BASE_URL = "baseUrl";
 
     /**
      * Static utility method to create an Operino with the given parameters

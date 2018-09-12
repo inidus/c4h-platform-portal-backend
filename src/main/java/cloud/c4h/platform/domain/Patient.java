@@ -21,8 +21,7 @@ public class Patient {
     String address3;
     String postcode;
     String telephone;
-    @JsonFormat
-            (shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+
     ZonedDateTime dateOfBirth;
     String gender;
     String nhsNumber;
@@ -102,6 +101,7 @@ public class Patient {
         this.telephone = telephone;
     }
 
+    // @JsonFormat (shape = JsonFormat.Shape.STRING, pattern = "yyyy-")
     public ZonedDateTime getDateOfBirth() {
         return dateOfBirth;
     }

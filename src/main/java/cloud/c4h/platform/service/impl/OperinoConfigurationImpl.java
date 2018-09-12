@@ -21,6 +21,8 @@ public class OperinoConfigurationImpl  implements OperinoConfiguration {
         this.thinkEhrRestClient = thinkEhrRestClient;
     }
 
+    private static final String DOMAIN_PASSWORD = "$2a$10$619ki";
+
     /**
      * Gets config associated with an operino
      *
@@ -35,18 +37,24 @@ public class OperinoConfigurationImpl  implements OperinoConfiguration {
             name = operino.getDomain();
         }
 
-        String user = operino.getUser().getLogin() + "_" + operino.getDomain();
-        String pass = operino.getUser().getPassword().substring(0, 12);
+        String user = operino.getDomain();
+        // String pass = operino.getUser().getPassword().substring(0, 12);
+        String pass = DOMAIN_PASSWORD;
 
         // create Map of data to be posted for domain creation
         Map<String, String> data = new HashMap<>();
+        data.put(CDR, this.thinkEhrRestClient.getCdrPublic());
+        data.put(CDR_EXPLORER, this.thinkEhrRestClient.getExplorerPublic());
+        data.put(OVERVIEW_DOCS, this.thinkEhrRestClient.getDocsPublic());
+        data.put(EHR_API_DOCS, this.thinkEhrRestClient.getAdminApiDocs());
+        data.put(ADMIN_API_DOCS, this.thinkEhrRestClient.getEhrApiDocs());
         data.put(DOMAIN, operino.getDomain());
         data.put(DOMAIN_SYSTEM_ID, operino.getDomain());
         data.put(USER_DISPLAY_NAME_OR_DOMAIN, name);
         data.put(OPERINO_NAME, operino.getName());
         data.put(USERNAME, user);
         data.put(PASSWORD, pass);
-        data.put(BASE_URL, this.thinkEhrRestClient.getBaseUrl());
+        data.put(API_TOKEN, ThinkEhrRestClient.createBasicAuthString(user,pass));
 
         return data;
     }

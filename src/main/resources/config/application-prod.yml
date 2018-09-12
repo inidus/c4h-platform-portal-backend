@@ -57,10 +57,13 @@ spring:
                   logs: index/log
                   data: index/data
     mail:
-        host: localhost
+        host: smtp.sendgrid.net
         port: 25
-        username:
-        password:
+        username: apikey
+        password: ***REMOVED***
+        protocol: smtp
+        tls: true
+
     thymeleaf:
         cache: true
 
@@ -146,20 +149,23 @@ jhipster:
 # ===================================================================
 
 application:
-
-
-# Provisioner settings
+#
+# set in platform-vars.env
 provisioner:
-    agentName: inidus_provisioner
+    agentName: provisioner
     subjectNamespace: uk.nhs.nhs_number
-# Notifier settings
+
 notifier:
-    openEhrUrl: https://cdr.code4health.org/rest/v1/composition/
+    openEhrUrl: http://thinkehr-app:8080/rest/v1/composition/
     teamName: Code4Health team
     skipCompositionIdValidation: true
+
+
 thinkehr:
-    cdrUrl: https://cdr.code4health.org/rest/v1/
-    baseUrl: https://cdr.code4health.org/rest/v1/
-    managerUrl: https://explorer.code4health.org/ehrscape-manager/rest/
-    adminName:
-    password:
+    adminName: admin
+    adminPassword: admin
+    cdrUrl: http://thinkehr-app:8080/
+    cdrPublic: https://cdr.code4health.org
+    explorerPublic: https://docs.code4health.org
+    docsPublic: https://docs.code4health.org/
+

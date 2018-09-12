@@ -181,7 +181,10 @@ public class OperinoServiceImpl implements OperinoService {
         Operino operino = findOne(id);
         if (operino != null) {
             // first truncate domain
-            thinkEhrRestClient.truncateDomain(operino.getDomain());
+
+//       Removed pending subsitution by Admin API delete Domain (or equivalnet) as
+//       the current api call depends on deprecated ehrscape-manager component
+            //   thinkEhrRestClient.truncateDomain(operino.getDomain());
             operinoRepository.delete(id);
             operinoSearchRepository.delete(id);
         } else {
